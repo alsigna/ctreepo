@@ -483,3 +483,35 @@ def test_null_empty(get_config_tree: ConfTree) -> None:
     root = get_config_tree
     filtered_root = ConfTreeSearcher.search(root)
     assert filtered_root == root.__class__()
+
+
+def test_children(get_config_tree: ConfTree) -> None:
+    without_children_config = dedent(
+        """
+        ip vpn-instance MGMT
+         ipv4-family
+        #
+        ip vpn-instance LAN
+         ipv4-family
+        #
+        """
+    ).strip()
+    with_children_config = dedent(
+        """
+        ip vpn-instance MGMT
+         ipv4-family
+          route-distinguisher 192.168.0.1:123
+        #
+        ip vpn-instance LAN
+         ipv4-family
+          route-distinguisher 192.168.0.1:123
+          vpn-target 123:123 export-extcommunity evpn
+          vpn-target 123:123 import-extcommunity evpn
+        #
+        """
+    ).strip()
+    root = get_config_tree
+    without_children = ConfTreeSearcher.search(ct=root, string="ipv4-family", include_children=False)
+    with_children = ConfTreeSearcher.search(ct=root, string="ipv4-family", include_children=True)
+    assert without_children.config == without_children_config
+    assert with_children.config == with_children_config

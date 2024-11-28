@@ -6,6 +6,7 @@ from .models import *
 from .parser import *
 from .postproc import *
 from .postproc_arista import *
+from .postproc_cisco import *
 from .postproc_huawei import *
 from .searcher import *
 from .serializer import *

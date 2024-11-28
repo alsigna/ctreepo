@@ -85,6 +85,7 @@ class ConfTreeEnv:
         include_tags: list[str] | None = None,
         include_mode: Literal["or", "and"] = "or",
         exclude_tags: list[str] | None = None,
+        include_children: bool = False,
     ) -> ConfTree:
         return ConfTreeSearcher.search(
             ct=ct,
@@ -92,4 +93,5 @@ class ConfTreeEnv:
             include_tags=include_tags,
             include_mode=include_mode,
             exclude_tags=exclude_tags,
+            include_children=include_children,
         )

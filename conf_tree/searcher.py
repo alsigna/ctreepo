@@ -12,9 +12,10 @@ class ConfTreeSearcher:
         cls,
         ct: ConfTree,
         string: str,
-        tags: list[str],
-        mode: Literal["or", "and"],
+        include_tags: list[str],
+        include_mode: Literal["or", "and"],
         exclude_tags: list[str],
+        include_children: bool,
     ) -> list[ConfTree]:
         """рекурсивный поиск.
 
@@ -35,11 +36,11 @@ class ConfTreeSearcher:
         else:
             string_match = re.search(string, ct.line) is not None
 
-        if len(tags) == 0:
+        if len(include_tags) == 0:
             tags_match = True
-        elif mode == "or" and not set(tags).isdisjoint(set(ct.tags)):
+        elif include_mode == "or" and not set(include_tags).isdisjoint(set(ct.tags)):
             tags_match = True
-        elif mode == "and" and set(tags).issubset(set(ct.tags)):
+        elif include_mode == "and" and set(include_tags).issubset(set(ct.tags)):
             tags_match = True
         else:
             tags_match = False
@@ -47,10 +48,21 @@ class ConfTreeSearcher:
         if not set(exclude_tags).isdisjoint(set(ct.tags)):
             tags_match = False
 
-        if all([string_match, tags_match]):
-            result.append(ct.copy(children=False))
-        for child in ct.children.values():
-            result.extend(cls._search(ct=child, string=string, tags=tags, mode=mode, exclude_tags=exclude_tags))
+        match_result = all([string_match, tags_match])
+        if match_result:
+            result.append(ct.copy(children=include_children))
+        if not match_result or not include_children:
+            for child in ct.children.values():
+                result.extend(
+                    cls._search(
+                        ct=child,
+                        string=string,
+                        include_tags=include_tags,
+                        include_mode=include_mode,
+                        exclude_tags=exclude_tags,
+                        include_children=include_children,
+                    )
+                )
 
         return result
 
@@ -63,6 +75,7 @@ class ConfTreeSearcher:
         include_tags: list[str] | None = None,
         include_mode: Literal["or", "and"] = "or",
         exclude_tags: list[str] | None = None,
+        include_children: bool = False,
     ) -> ConfTree:
         """Поиск конфигурации в дереве.
 
@@ -85,7 +98,12 @@ class ConfTreeSearcher:
         if len(string) == 0 and len(include_tags) == 0 and len(exclude_tags) == 0:
             return root
         filter_result = cls._search(
-            ct=ct, string=string, tags=include_tags, mode=include_mode, exclude_tags=exclude_tags
+            ct=ct,
+            string=string,
+            include_tags=include_tags,
+            include_mode=include_mode,
+            exclude_tags=exclude_tags,
+            include_children=include_children,
         )
         for node in filter_result:
             root.merge(node)
