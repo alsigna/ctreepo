@@ -17,18 +17,7 @@ class ConfTreeSearcher:
         exclude_tags: list[str],
         include_children: bool,
     ) -> list[ConfTree]:
-        """рекурсивный поиск.
-
-        Args:
-            ct (ConfigTree): где ищем
-            string (str): что ищем, может быть regex строкой
-            tags (list[str]): список тегов, по которым можно выборку сделать
-            mode (Literal["or", "and"]): логика объединения тегов для поиска
-            exclude_tags (list[str]): список тегов-исключений, не должно быть на узле
-
-        Returns:
-            list[ConfTree]: список найденных нод
-        """
+        """рекурсивный поиск."""
         result = []
 
         if len(string) == 0:
@@ -85,6 +74,7 @@ class ConfTreeSearcher:
             include_tags (list[str]): список тегов, по которым выборку делаем
             include_mode (Literal["or", "and"]): логика объединения критериев поиска
             exclude_tags (list[str]): список тегов-исключений, не должно быть на узле
+            include_children (bool): включать потомков найденной секции или нет
 
         Returns:
             ConfigTree: новое дерево с отфильтрованным результатом

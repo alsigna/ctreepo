@@ -33,7 +33,6 @@ class CiscoPostProcBGP(ConfTreePostProc):
         Args:
             ct (ConfTree): дерево, для модификации
         """
-
         # на всякий случай проверим, что это дерево для cisco
         if not isinstance(ct, CiscoCT):
             return

@@ -1,5 +1,4 @@
-from conf_tree import ConfTreeEnv  # общий класс, собирающий весь функционал в единую точку входа
-from conf_tree import Vendor  # список доступных производителей
+from conf_tree import ConfTreeEnv, Vendor
 
 with open("./examples/configs/cisco-router.txt", "r") as f:
     config_str = f.read()
