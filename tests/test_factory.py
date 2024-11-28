@@ -2,12 +2,13 @@ from textwrap import dedent
 
 import pytest
 
-from conf_tree import AristaCT, ConfTree, ConfTreeFactory, HuaweiCT, Vendor
+from conf_tree import AristaCT, CiscoCT, ConfTree, ConfTreeFactory, HuaweiCT, Vendor
 
 
 def test_get_class() -> None:
     assert ConfTreeFactory.get_class(Vendor.ARISTA) == AristaCT
     assert ConfTreeFactory.get_class(Vendor.HUAWEI) == HuaweiCT
+    assert ConfTreeFactory.get_class(Vendor.CISCO) == CiscoCT
 
 
 def test_new() -> None:
