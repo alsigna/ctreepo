@@ -604,3 +604,46 @@ def test_no_diff_sections() -> None:
     )
     assert diff_no_diff.config == diff_no_diff_config
     assert diff_no_diff.patch == diff_no_diff_patch
+
+
+def test_double_undo() -> None:
+    current_config = dedent(
+        """
+        no service dhcp
+        no service pad
+        ip dhcp bootp ignore
+        interface Loopback0
+         ip address 1.2.3.4 255.255.255.255
+         no keepalive
+        interface Loopback1
+         ip address 1.2.3.4 255.255.255.255
+        """
+    )
+    target_config = dedent(
+        """
+        service pad
+        no ip dhcp bootp ignore
+        interface Loopback0
+         ip address 1.2.3.4 255.255.255.255
+        """
+    )
+    diff_config = dedent(
+        """
+        service dhcp
+        !
+        service pad
+        !
+        interface Loopback0
+         keepalive
+        !
+        no ip dhcp bootp ignore
+        !
+        no interface Loopback1
+        !
+        """
+    ).strip()
+    parser = ConfTreeParser(Vendor.CISCO)
+    current = parser.parse(current_config)
+    target = parser.parse(target_config)
+    diff = ConfTreeDiffer.diff(current, target)
+    assert diff.config == diff_config

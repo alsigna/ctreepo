@@ -81,7 +81,10 @@ class ConfTreeDiffer:
                         node = list(node.children.values())[0]
                     # добавить default? нужно кейс вспомнить
                     # _ = node.__class__(f"default {node.line}", node.parent, node.tags.copy())
-                    node.line = f"{node.undo} {node.line}"
+                    if node.line.startswith(f"{node.undo} "):
+                        node.line = node.line.replace(f"{node.undo} ", "", 1)
+                    else:
+                        node.line = f"{node.undo} {node.line}"
                     root.rebuild(deep=True)
                 result.append(root)
             else:
