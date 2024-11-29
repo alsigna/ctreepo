@@ -515,3 +515,100 @@ def test_children(get_config_tree: ConfTree) -> None:
     with_children = ConfTreeSearcher.search(ct=root, string="ipv4-family", include_children=True)
     assert without_children.config == without_children_config
     assert with_children.config == with_children_config
+
+
+def test_exclude_children_by_tag() -> None:
+    config_str = dedent(
+        """
+        no platform punt-keepalive disable-kernel-core
+        no service pad
+        !
+        router bgp 64512
+         neighbor CSC peer-group
+         neighbor CSC remote-as 12345
+         !
+         address-family ipv4
+          neighbor CSC send-community both
+          neighbor CSC route-map rm_CSC_PE_in in
+         exit-address-family
+        !
+        """
+    )
+    bgp_all_str = dedent(
+        """
+        router bgp 64512
+         neighbor CSC peer-group
+         neighbor CSC remote-as 12345
+         address-family ipv4
+          neighbor CSC send-community both
+          neighbor CSC route-map rm_CSC_PE_in in
+        !
+        """
+    ).strip()
+    bgp_rm_attach_str = dedent(
+        """
+        router bgp 64512
+         address-family ipv4
+          neighbor CSC route-map rm_CSC_PE_in in
+        !
+        """
+    ).strip()
+    bgp_no_rm_str = dedent(
+        """
+        router bgp 64512
+         neighbor CSC peer-group
+         neighbor CSC remote-as 12345
+         address-family ipv4
+          neighbor CSC send-community both
+        !
+        """
+    ).strip()
+    bgp_no_rm_exclude_str = dedent(
+        """
+        no platform punt-keepalive disable-kernel-core
+        !
+        no service pad
+        !
+        router bgp 64512
+         neighbor CSC peer-group
+         neighbor CSC remote-as 12345
+         address-family ipv4
+          neighbor CSC send-community both
+        !
+        """
+    ).strip()
+    tagging_rules: list[dict[str, str | list[str]]] = [
+        {"regex": r"^router bgp .* neighbor (\S+) route-map (\S+) (?:in|out)", "tags": ["rm-attach"]},
+        {"regex": r"^router bgp \d+$", "tags": ["bgp"]},
+    ]
+    parser = ConfTreeParser(Vendor.CISCO, TaggingRulesDict({Vendor.CISCO: tagging_rules}))
+    root = parser.parse(config_str)
+
+    # c "neighbor CSC route-map rm_CSC_PE_in in", встречаем bgp секцию и помещаем
+    # этот узел в результат со всеми его потомками, без проверки на их теги
+    bgp_all = ConfTreeSearcher.search(
+        root,
+        include_tags=["bgp"],
+        include_children=True,
+    )
+    assert bgp_all.config == bgp_all_str
+
+    # без "neighbor CSC route-map rm_CSC_PE_in in", а тут уже проверяем теги каждого
+    # потомка, поэтому строка не попадает в результат
+    bgp_no_rm = ConfTreeSearcher.search(
+        root,
+        include_tags=["bgp"],
+    )
+    assert bgp_no_rm.config == bgp_no_rm_str
+
+    bgp_rm_attach = ConfTreeSearcher.search(
+        root,
+        include_tags=["rm-attach"],
+    )
+    assert bgp_rm_attach.config == bgp_rm_attach_str
+
+    bgp_no_rm_exclude = ConfTreeSearcher.search(
+        root,
+        exclude_tags=["rm-attach"],
+    )
+    assert bgp_no_rm_exclude.config == bgp_no_rm_exclude_str

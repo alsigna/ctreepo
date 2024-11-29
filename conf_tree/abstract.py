@@ -347,7 +347,7 @@ class ConfTree(ABC):
 
     def reorder(self, tags: list[str], *, reverse: bool = False) -> None:
         def _get_children_tags(node: ConfTree) -> list[str]:
-            tags = node.tags
+            tags = node.tags.copy()
             for child in node.children.values():
                 tags.extend(_get_children_tags(child))
             return list(set(tags))

@@ -2,7 +2,7 @@ from conf_tree import ConfTreeEnv, Vendor
 
 
 def get_configs() -> str:
-    with open(file="./examples/configs/cisco-example-2.txt", mode="r") as f:
+    with open(file="./examples/configs/cisco-example-3.txt", mode="r") as f:
         config = f.read()
     return config
 

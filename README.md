@@ -6,6 +6,7 @@
   - [Преобразование в дерево (01.parsing.py)](#преобразование-в-дерево-01parsingpy)
   - [Поиск/фильтрация (02.searching.py)](#поискфильтрация-02searchingpy)
   - [Сериализация/десериализация (03.serialization.py)](#сериализациядесериализация-03serializationpy)
+  - [Изменение порядка](#изменение-порядка)
 
 ## Краткое описание
 
@@ -447,7 +448,7 @@ interface FastEthernet0
 </details>
 <br>
 
-регулярное выражения пишутся для formal вида, т.е. строки с учетом иерархии выше. Это дает возможность расставлять теги с учетом того, в какой секции находится конфигурационная строка:
+Регулярные выражения пишутся для formal вида, т.е. строки с учетом иерархии над ней. Это дает возможность расставлять теги с учетом того, в какой секции находится конфигурационная строка:
 
 ```text
 interface Tunnel1 / ip address 10.0.0.2 255.255.255.0
@@ -546,6 +547,155 @@ In [5]: print("\n---равенство двух объектов---")
 
 ---равенство двух объектов---
 True
+```
+
+</details>
+<br>
+
+## Изменение порядка
+
+У дерева есть метод `reorder()`, который позволяет отсортировать конфигурацию в определенном порядке. Например в случаях, когда сначала нужно соблюсти порядок настройки объектов конфигурации: сначала prefix-lists, затем route-maps (которые используют созданные prefix-lists), затем назначить созданные route-maps на bgp пиров.
+
+<details>
+    <summary>Листинг (click me)</summary>
+
+```python
+In [1]: from conf_tree import ConfTreeEnv, Vendor
+   ...: 
+   ...: 
+   ...: def get_configs() -> str:
+   ...:     with open(file="./examples/configs/cisco-example-4.txt", mode="r") as f:
+   ...:         config = f.read()
+   ...:     return config
+   ...: 
+   ...: 
+   ...: def get_ct_environment() -> ConfTreeEnv:
+   ...:     tagging_rules: list[dict[str, str | list[str]]] = [
+   ...:         {"regex": r"^router bgp .* neighbor (\S+) route-map (\S+) (?:in|out)", "tags": ["rm-attach"]},
+   ...:         {"regex": r"^router bgp \d+$", "tags": ["bgp"]},
+   ...:         {"regex": r"^route-map (\S+) (?:permit|deny) \d+$", "tags": ["rm"]},
+   ...:         {"regex": r"^ip community-list (?:standard|expanded) (\S+)", "tags": ["cl"]},
+   ...:         {"regex": r"^ip prefix-list (\S+)", "tags": ["pl"]},
+   ...:     ]
+   ...:     return ConfTreeEnv(
+   ...:         vendor=Vendor.CISCO,
+   ...:         tagging_rules=tagging_rules,
+   ...:     )
+   ...: 
+
+In [2]: config = get_configs()
+   ...: env = get_ct_environment()
+   ...: router = env.parse(config)
+   ...: 
+
+In [3]: print("\n--community-list -> prefix-list -> route-map -> bgp -> untagged--")
+   ...: router.reorder(["cl", "pl", "rm", "bgp"])
+   ...: print(router.config)
+
+--community-list -> prefix-list -> route-map -> bgp -> untagged--
+ip community-list standard cl_PE1 permit 64512:10001
+!
+ip community-list standard cl_PE2 permit 64512:10002
+!
+ip community-list expanded cl_VPNv4_1 permit 64512:2[0-9][0-9][0-9]1
+!
+ip community-list expanded cl_VPNv4_2 permit 64512:2[0-9][0-9][0-9]2
+!
+ip prefix-list pl_CSC seq 5 permit 10.0.0.0/24 ge 32
+!
+route-map rm_CSC_PE_in deny 10
+ match community cl_PE1 cl_PE2
+!
+route-map rm_CSC_PE_in permit 20
+ match ip address prefix-list pl_CSC
+ set local-preference 200
+!
+route-map rm_RR_in permit 10
+ match community cl_VPNv4_1
+ set local-preference 200
+!
+route-map rm_RR_in permit 20
+ match community cl_VPNv4_2
+ set local-preference 190
+!
+router bgp 64512
+ neighbor CSC peer-group
+ neighbor CSC remote-as 12345
+ neighbor RR peer-group
+ neighbor RR remote-as 64512
+ address-family ipv4
+  neighbor CSC send-community both
+  neighbor CSC route-map rm_CSC_PE_in in
+  neighbor CSC send-label
+ address-family vpnv4
+  neighbor RR route-map rm_RR_in in
+!
+no platform punt-keepalive disable-kernel-core
+!
+no service dhcp
+!
+ip dhcp bootp ignore
+!
+no service pad
+!
+
+In [4]: print("\n--bgp -> community-list -> prefix-list -> route-map -> untagged -> rm-attach--")
+   ...: wo_rm_attach = env.search(router, exclude_tags=["rm-attach"])
+   ...: rm_attach = env.search(router, include_tags=["rm-attach"])
+   ...: wo_rm_attach.reorder(["bgp", "cl", "pl", "rm"])
+   ...: print(wo_rm_attach.config)
+   ...: print(rm_attach.config)
+
+--bgp -> community-list -> prefix-list -> route-map -> untagged -> rm-attach--
+router bgp 64512
+ neighbor CSC peer-group
+ neighbor CSC remote-as 12345
+ neighbor RR peer-group
+ neighbor RR remote-as 64512
+ address-family ipv4
+  neighbor CSC send-community both
+  neighbor CSC send-label
+ address-family vpnv4
+!
+ip community-list standard cl_PE1 permit 64512:10001
+!
+ip community-list standard cl_PE2 permit 64512:10002
+!
+ip community-list expanded cl_VPNv4_1 permit 64512:2[0-9][0-9][0-9]1
+!
+ip community-list expanded cl_VPNv4_2 permit 64512:2[0-9][0-9][0-9]2
+!
+ip prefix-list pl_CSC seq 5 permit 10.0.0.0/24 ge 32
+!
+route-map rm_CSC_PE_in deny 10
+ match community cl_PE1 cl_PE2
+!
+route-map rm_CSC_PE_in permit 20
+ match ip address prefix-list pl_CSC
+ set local-preference 200
+!
+route-map rm_RR_in permit 10
+ match community cl_VPNv4_1
+ set local-preference 200
+!
+route-map rm_RR_in permit 20
+ match community cl_VPNv4_2
+ set local-preference 190
+!
+no platform punt-keepalive disable-kernel-core
+!
+no service dhcp
+!
+ip dhcp bootp ignore
+!
+no service pad
+!
+router bgp 64512
+ address-family ipv4
+  neighbor CSC route-map rm_CSC_PE_in in
+ address-family vpnv4
+  neighbor RR route-map rm_RR_in in
+!
 ```
 
 </details>

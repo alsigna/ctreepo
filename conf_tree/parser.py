@@ -124,7 +124,7 @@ class ConfTreeParser:
 
             # число пробелов у текущей строки
             current_space = len(line) - len(line.lstrip())
-            line = line.lstrip()
+            line = line.strip()
 
             # мы вошли в секцию
             if current_space > spaces[-1]:
