@@ -48,7 +48,7 @@ class CiscoCT(ConfTree):
         r"end",
     ]
     mask_patterns = [
-        r".*secret 9 (\S+)",
+        r".*secret (?:5|9|7) (\S+)",
     ]
     new_line_mask = "<<br>>"
 

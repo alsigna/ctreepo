@@ -3,7 +3,9 @@
 - [Библиотека Conf-Tree](#библиотека-conf-tree)
   - [Краткое описание](#краткое-описание)
   - [Быстрый пример (00.quick-start.py)](#быстрый-пример-00quick-startpy)
-  - [Простейший поиск](#простейший-поиск)
+  - [Преобразование в дерево (01.parsing.py)](#преобразование-в-дерево-01parsingpy)
+  - [Поиск/фильтрация (02.searching.py)](#поискфильтрация-02searchingpy)
+  - [Сериализация/десериализация (03.serialization.py)](#сериализациядесериализация-03serializationpy)
 
 ## Краткое описание
 
@@ -19,6 +21,9 @@
 - Преобразуем конфигурации в деревья, попутно размечая тегами секции bgp и static routes
 - Получаем разницу конфигураций
 - Фильтруем разницу (а можно сначала фильтровать текущее/целевое деревья, а потом вычислять разницу между ними)
+
+<details>
+    <summary>Листинг (click me)</summary>
 
 ```python
 In [2]: from conf_tree import ConfTreeEnv, Vendor
@@ -119,7 +124,429 @@ router bgp 64512
 !
 ```
 
-## Простейший поиск
+</details>
+<br>
+
+## Преобразование в дерево ([01.parsing.py](./examples/01.parsing.py))
+
+- Преобразование текстовой конфигурации в дерево на основе отступов в тексте
+- Возможность размечать секции/строки тегами для последующей фильтрации
+- pre-run и post-run обработка конфига и получившегося дерева, например нормализация входного конфига, обработка баннеров (cisco) и пр.
+
+<details>
+    <summary>Листинг (click me)</summary>
 
 ```python
+In [1]: from conf_tree import ConfTreeEnv, Vendor
+
+In [2]: def get_configs() -> str:
+   ...:     with open(file="./examples/configs/cisco-example-1.txt", mode="r") as f:
+   ...:         config = f.read()
+   ...:     return config
+   ...: 
+
+In [3]: def get_ct_environment() -> ConfTreeEnv:
+   ...:     return ConfTreeEnv(vendor=Vendor.CISCO)
+   ...: 
+
+In [4]: config_config = get_configs()
+
+In [5]: env = get_ct_environment()
+
+In [6]: current = env.parse(config_config)
+
+In [7]: print("\n---дерево в виде привычной конфигурации---")
+   ...: print(current.config)
+
+---дерево в виде привычной конфигурации---
+service tcp-keepalives-in
+!
+service timestamps debug datetime msec localtime show-timezone
+!
+enable secret 5 2Fe034RYzgb7xbt2pYxcpA==
+!
+aaa group server tacacs+ TacacsGroup
+ server 192.168.0.100
+ server 192.168.0.101
+!
+interface Tunnel1
+ ip address 10.0.0.2 255.255.255.0
+ no ip redirects
+!
+interface Tunnel2
+ ip address 10.1.0.2 255.255.255.0
+ no ip redirects
+!
+interface FastEthernet0
+ switchport access vlan 100
+ no ip address
+!
+router bgp 64512
+ neighbor 192.168.255.1 remote-as 64512
+ neighbor 192.168.255.1 update-source Loopback0
+ address-family ipv4
+  network 192.168.100.1 mask 255.255.255.0
+  neighbor 192.168.255.1 activate
+!
+
+In [8]: print("\n---конфигурация с маскированными секретами---")
+   ...: print(current.masked_config)
+
+---конфигурация с маскированными секретами---
+service tcp-keepalives-in
+!
+service timestamps debug datetime msec localtime show-timezone
+!
+enable secret 5 ******
+!
+aaa group server tacacs+ TacacsGroup
+ server 192.168.0.100
+ server 192.168.0.101
+!
+interface Tunnel1
+ ip address 10.0.0.2 255.255.255.0
+ no ip redirects
+!
+interface Tunnel2
+ ip address 10.1.0.2 255.255.255.0
+ no ip redirects
+!
+interface FastEthernet0
+ switchport access vlan 100
+ no ip address
+!
+router bgp 64512
+ neighbor 192.168.255.1 remote-as 64512
+ neighbor 192.168.255.1 update-source Loopback0
+ address-family ipv4
+  network 192.168.100.1 mask 255.255.255.0
+  neighbor 192.168.255.1 activate
+!
+
+In [9]: print("\n---дерево в виде патча для устройства---")
+   ...: print(current.patch)
+
+---дерево в виде патча для устройства---
+service tcp-keepalives-in
+service timestamps debug datetime msec localtime show-timezone
+enable secret 5 2Fe034RYzgb7xbt2pYxcpA==
+aaa group server tacacs+ TacacsGroup
+server 192.168.0.100
+server 192.168.0.101
+exit
+interface Tunnel1
+ip address 10.0.0.2 255.255.255.0
+no ip redirects
+exit
+interface Tunnel2
+ip address 10.1.0.2 255.255.255.0
+no ip redirects
+exit
+interface FastEthernet0
+switchport access vlan 100
+no ip address
+exit
+router bgp 64512
+neighbor 192.168.255.1 remote-as 64512
+neighbor 192.168.255.1 update-source Loopback0
+address-family ipv4
+network 192.168.100.1 mask 255.255.255.0
+neighbor 192.168.255.1 activate
+exit
+exit
+
+In [10]: print("\n---патч с маскированными секретами---")
+    ...: print(current.masked_patch)
+
+---патч с маскированными секретами---
+service tcp-keepalives-in
+service timestamps debug datetime msec localtime show-timezone
+enable secret 5 ******
+aaa group server tacacs+ TacacsGroup
+server 192.168.0.100
+server 192.168.0.101
+exit
+interface Tunnel1
+ip address 10.0.0.2 255.255.255.0
+no ip redirects
+exit
+interface Tunnel2
+ip address 10.1.0.2 255.255.255.0
+no ip redirects
+exit
+interface FastEthernet0
+switchport access vlan 100
+no ip address
+exit
+router bgp 64512
+neighbor 192.168.255.1 remote-as 64512
+neighbor 192.168.255.1 update-source Loopback0
+address-family ipv4
+network 192.168.100.1 mask 255.255.255.0
+neighbor 192.168.255.1 activate
+exit
+exit
+
+In [11]: print("\n---дерево в виде формальной конфигурации (аналогично formal в ios-xr)---")
+    ...: print(current.formal_config)
+
+---дерево в виде формальной конфигурации (аналогично formal в ios-xr)---
+service tcp-keepalives-in
+service timestamps debug datetime msec localtime show-timezone
+enable secret 5 2Fe034RYzgb7xbt2pYxcpA==
+aaa group server tacacs+ TacacsGroup / server 192.168.0.100
+aaa group server tacacs+ TacacsGroup / server 192.168.0.101
+interface Tunnel1 / ip address 10.0.0.2 255.255.255.0
+interface Tunnel1 / no ip redirects
+interface Tunnel2 / ip address 10.1.0.2 255.255.255.0
+interface Tunnel2 / no ip redirects
+interface FastEthernet0 / switchport access vlan 100
+interface FastEthernet0 / no ip address
+router bgp 64512 / neighbor 192.168.255.1 remote-as 64512
+router bgp 64512 / neighbor 192.168.255.1 update-source Loopback0
+router bgp 64512 / address-family ipv4 / network 192.168.100.1 mask 255.255.255.0
+router bgp 64512 / address-family ipv4 / neighbor 192.168.255.1 activate
 ```
+
+</details>
+<br>
+
+## Поиск/фильтрация ([02.searching.py](./examples/02.searching.py))
+
+- может быть на основе тегов, проставленных во время преобразования в дерево
+- может быть по строке (regex)
+- в результате получается копия дерева с которой можно работать так же, как и с оригиналом
+
+<details>
+    <summary>Листинг (click me)</summary>
+
+```python
+In [1]: from conf_tree import ConfTreeEnv, Vendor
+   ...: 
+   ...: 
+   ...: def get_configs() -> str:
+   ...:     with open(file="./examples/configs/cisco-example-1.txt", mode="r") as f:
+   ...:         config = f.read()
+   ...:     return config
+   ...: 
+   ...: 
+   ...: def get_ct_environment() -> ConfTreeEnv:
+   ...:     tagging_rules: list[dict[str, str | list[str]]] = [
+   ...:         {"regex": r"^router bgp \d+$", "tags": ["bgp"]},
+   ...:         {"regex": r"^interface (Tunnel1) / ip address .*", "tags": ["interface", "tunnel-1-ip"]},
+   ...:         {"regex": r"^interface (Tunnel2) / ip address .*", "tags": ["interface", "tunnel-1-ip"]},
+   ...:         {"regex": r"^interface (\S+)$", "tags": ["interface"]},
+   ...:     ]
+   ...:     return ConfTreeEnv(
+   ...:         vendor=Vendor.CISCO,
+   ...:         tagging_rules=tagging_rules,
+   ...:     )
+   ...: 
+
+In [2]: config_config = get_configs()
+   ...: env = get_ct_environment()
+   ...: router = env.parse(config_config)
+
+In [3]: print("\n---все вхождения 'address'---")
+   ...: address = env.search(router, string="address")
+   ...: print(address.config)
+   ...: 
+
+---все вхождения 'address'---
+interface Tunnel1
+ ip address 10.0.0.2 255.255.255.0
+!
+interface Tunnel2
+ ip address 10.1.0.2 255.255.255.0
+!
+interface FastEthernet0
+ no ip address
+!
+router bgp 64512
+ address-family ipv4
+!
+
+In [4]: print("\n---все вхождения 'address' с возможными потомками---")
+   ...: address_children = env.search(router, string="address", include_children=True)
+   ...: print(address_children.config)
+   ...: 
+
+---все вхождения 'address' с возможными потомками---
+interface Tunnel1
+ ip address 10.0.0.2 255.255.255.0
+!
+interface Tunnel2
+ ip address 10.1.0.2 255.255.255.0
+!
+interface FastEthernet0
+ no ip address
+!
+router bgp 64512
+ address-family ipv4
+  network 192.168.100.1 mask 255.255.255.0
+  neighbor 192.168.255.1 activate
+!
+
+In [5]: print("\n---все вхождения 'address \d{1,3}'---")
+   ...: address_ip = env.search(router, string=r"address \d{1,3}")
+   ...: print(address_ip.config)
+   ...: 
+
+---все вхождения 'address \d{1,3}'---
+interface Tunnel1
+ ip address 10.0.0.2 255.255.255.0
+!
+interface Tunnel2
+ ip address 10.1.0.2 255.255.255.0
+!
+
+In [6]: print("\n---конфигурация по тегу 'bgp'---")
+   ...: bgp = env.search(router, include_tags=["bgp"])
+   ...: print(bgp.masked_config)
+   ...: 
+
+---конфигурация по тегу 'bgp'---
+router bgp 64512
+ neighbor 192.168.255.1 remote-as 64512
+ neighbor 192.168.255.1 update-source Loopback0
+ address-family ipv4
+  network 192.168.100.1 mask 255.255.255.0
+  neighbor 192.168.255.1 activate
+!
+
+In [7]: print("\n---все, кроме тега 'bgp'---")
+   ...: no_bgp = env.search(router, exclude_tags=["bgp"])
+   ...: print(no_bgp.masked_config)
+   ...: 
+
+---все, кроме тега 'bgp'---
+service tcp-keepalives-in
+!
+service timestamps debug datetime msec localtime show-timezone
+!
+enable secret 5 ******
+!
+aaa group server tacacs+ TacacsGroup
+ server 192.168.0.100
+ server 192.168.0.101
+!
+interface Tunnel1
+ ip address 10.0.0.2 255.255.255.0
+ no ip redirects
+!
+interface Tunnel2
+ ip address 10.1.0.2 255.255.255.0
+ no ip redirects
+!
+interface FastEthernet0
+ switchport access vlan 100
+ no ip address
+!
+```
+
+</details>
+<br>
+
+регулярное выражения пишутся для formal вида, т.е. строки с учетом иерархии выше. Это дает возможность расставлять теги с учетом того, в какой секции находится конфигурационная строка:
+
+```text
+interface Tunnel1 / ip address 10.0.0.2 255.255.255.0
+interface Tunnel2 / ip address 10.1.0.2 255.255.255.0
+```
+
+На ip интерфейса Tunnel1 вешаем тег "tunnel-1-ip", на ip интерфейса Tunnel2 вешаем тег "tunnel-2-ip"
+
+```python
+{
+    "regex": r"^interface (Tunnel1) / ip address \S+ \S+(?: )?(secondary)?$",
+    "tags": ["interface", "tunnel-1-ip"],
+},
+{
+    "regex": r"^interface (Tunnel2) / ip address \S+ \S+(?: )?(secondary)?$",
+    "tags": ["interface", "tunnel-1-ip"],
+},
+```
+
+Если в регулярном выражении есть неименованные группы, то их содержимое автоматически попадает в теги:
+
+```python
+{
+    "regex": r"^interface (\S+)$",
+    "tags": ["interface"],
+},
+```
+
+Помимо тега "interface", на строку конфигурации будет так же назначен тег, равный имени самого.
+
+Если строка конфигурации не попала не в одно из правил, тогда теги для нее берутся из вышестоящего уровня. Например если на "interface Loopback0" были назначены теги ["interface", "Loopback0"], то все строки под этой секцией так же будут иметь эти теги, если явно не перезапишутся более узкими правилами.
+
+## Сериализация/десериализация ([03.serialization.py](./examples/03.serialization.py))
+
+Позволяет сохранить дерево в словарь и восстановить дерево из словаря, дальше в json, например сложить и сохранить в базу/отдать через API.
+
+<details>
+    <summary>Листинг (click me)</summary>
+
+```python
+In [1]: from conf_tree import ConfTreeEnv, Vendor
+   ...: 
+   ...: 
+   ...: def get_configs() -> str:
+   ...:     with open(file="./examples/configs/cisco-example-2.txt", mode="r") as f:
+   ...:         config = f.read()
+   ...:     return config
+   ...: 
+   ...: 
+   ...: def get_ct_environment() -> ConfTreeEnv:
+   ...:     tagging_rules: list[dict[str, str | list[str]]] = [
+   ...:         {"regex": r"^router bgp \d+$", "tags": ["bgp"]},
+   ...:         {"regex": r"^interface (\S+)$", "tags": ["interface"]},
+   ...:     ]
+   ...:     return ConfTreeEnv(
+   ...:         vendor=Vendor.CISCO,
+   ...:         tagging_rules=tagging_rules,
+   ...:     )
+   ...: 
+
+In [2]: config = get_configs()
+   ...: env = get_ct_environment()
+   ...: router_original = env.parse(config)
+   ...: 
+
+In [3]: config_dict = env.to_dict(router_original)
+   ...: print("\n---сериализация---")
+   ...: print(config_dict)
+   ...: 
+
+---сериализация---
+{'line': '', 'tags': [], 'children': {'service tcp-keepalives-in': {'line': 'service tcp-keepalives-in', 'tags': [], 'children': {}}, 'service timestamps debug datetime msec localtime show-timezone': {'line': 'service timestamps debug datetime msec localtime show-timezone', 'tags': [], 'children': {}}, 'interface FastEthernet0': {'line': 'interface FastEthernet0', 'tags': ['interface', 'FastEthernet0'], 'children': {'switchport access vlan 100': {'line': 'switchport access vlan 100', 'tags': ['interface', 'FastEthernet0'], 'children': {}}, 'no ip address': {'line': 'no ip address', 'tags': ['interface', 'FastEthernet0'], 'children': {}}}}, 'router bgp 64512': {'line': 'router bgp 64512', 'tags': ['bgp'], 'children': {'neighbor 192.168.255.1 remote-as 64512': {'line': 'neighbor 192.168.255.1 remote-as 64512', 'tags': ['bgp'], 'children': {}}, 'neighbor 192.168.255.1 update-source Loopback0': {'line': 'neighbor 192.168.255.1 update-source Loopback0', 'tags': ['bgp'], 'children': {}}, 'address-family ipv4': {'line': 'address-family ipv4', 'tags': ['bgp'], 'children': {'network 192.168.100.1 mask 255.255.255.0': {'line': 'network 192.168.100.1 mask 255.255.255.0', 'tags': ['bgp'], 'children': {}}, 'neighbor 192.168.255.1 activate': {'line': 'neighbor 192.168.255.1 activate', 'tags': ['bgp'], 'children': {}}}}}}}}
+
+In [4]: router_restored = env.from_dict(config_dict)
+   ...: print("\n---десериализация---")
+   ...: print(router_restored.patch)
+
+---десериализация---
+service tcp-keepalives-in
+service timestamps debug datetime msec localtime show-timezone
+interface FastEthernet0
+switchport access vlan 100
+no ip address
+exit
+router bgp 64512
+neighbor 192.168.255.1 remote-as 64512
+neighbor 192.168.255.1 update-source Loopback0
+address-family ipv4
+network 192.168.100.1 mask 255.255.255.0
+neighbor 192.168.255.1 activate
+exit
+exit
+
+In [5]: print("\n---равенство двух объектов---")
+   ...: print(router_original == router_restored)
+
+---равенство двух объектов---
+True
+```
+
+</details>
+<br>
