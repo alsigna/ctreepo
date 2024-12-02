@@ -58,7 +58,7 @@ def test_cisco_bgp_post_processing() -> None:
          neighbor 192.168.255.1 update-source Loopback0
          !
          address-family ipv4
-          network 192.168.100.1 mask 255.255.255.0
+          network 192.168.100.0 mask 255.255.255.0
           redistribute ospf 1 route-map rm_OSPF2BGP
           neighbor RR send-community both
           neighbor RR advertisement-interval 0
@@ -87,7 +87,7 @@ def test_cisco_bgp_post_processing() -> None:
          neighbor 192.168.255.1 update-source Loopback0
          !
          address-family ipv4
-          network 192.168.100.1 mask 255.255.255.0
+          network 192.168.100.0 mask 255.255.255.0
           neighbor 192.168.255.1 activate
           neighbor 192.168.255.1 soft-reconfiguration inbound
           neighbor 192.168.255.1 prefix-list pl_BGP_out out

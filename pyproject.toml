@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "conf-tree"
-version = "0.1.0"
+version = "0.1.1"
 description = "Parsing, filtering and diff calculation for network device configurations"
 license = "MIT"
 authors = ["Alexander Ignatov <ignatov.alx@gmail.com>"]
