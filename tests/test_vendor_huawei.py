@@ -97,6 +97,7 @@ def root() -> HuaweiCT:
          certificate load pem-cert cert.cer key-pair rsa key-file cert.key.pem auth-code cipher cert-secret-key
         #
           snmp-agent community read cipher snmp-secret-key mib-view iso-view
+          ssh server-source -i all
         #
         ike peer ike_peer_name
          version 2
@@ -261,6 +262,8 @@ def test_config(root: HuaweiCT) -> None:
         #
         snmp-agent community read cipher snmp-secret-key mib-view iso-view
         #
+        ssh server-source -i all
+        #
         ike peer ike_peer_name
          version 2
          pre-shared-key cipher ike-secret-key
@@ -400,6 +403,7 @@ def test_patch(root: HuaweiCT) -> None:
         certificate load pem-cert cert.cer key-pair rsa key-file cert.key.pem auth-code cipher cert-secret-key
         quit
         snmp-agent community read cipher snmp-secret-key mib-view iso-view
+        ssh server-source -i all
         ike peer ike_peer_name
         version 2
         pre-shared-key cipher ike-secret-key
@@ -776,6 +780,11 @@ def test_to_dict(root: HuaweiCT) -> None:
             },
             "snmp-agent community read cipher snmp-secret-key mib-view iso-view": {
                 "line": "snmp-agent community read cipher snmp-secret-key mib-view iso-view",
+                "tags": [],
+                "children": {},
+            },
+            "ssh server-source -i all": {
+                "line": "ssh server-source -i all",
                 "tags": [],
                 "children": {},
             },
@@ -1245,6 +1254,11 @@ def test_from_dict(root: HuaweiCT) -> None:
                 "tags": [],
                 "children": {},
             },
+            "ssh server-source -i all": {
+                "line": "ssh server-source -i all",
+                "tags": [],
+                "children": {},
+            },
             "ike peer ike_peer_name": {
                 "line": "ike peer ike_peer_name",
                 "tags": [],
@@ -1471,6 +1485,8 @@ cert.key.pem auth-code cipher {HuaweiCT.masking_string}
         #
         snmp-agent community read cipher {HuaweiCT.masking_string} mib-view iso-view
         #
+        ssh server-source -i all
+        #
         ike peer ike_peer_name
          version 2
          pre-shared-key cipher {HuaweiCT.masking_string}
@@ -1611,6 +1627,7 @@ def test_masked_patch(root: HuaweiCT) -> None:
 cert.key.pem auth-code cipher {HuaweiCT.masking_string}
         quit
         snmp-agent community read cipher {HuaweiCT.masking_string} mib-view iso-view
+        ssh server-source -i all
         ike peer ike_peer_name
         version 2
         pre-shared-key cipher {HuaweiCT.masking_string}

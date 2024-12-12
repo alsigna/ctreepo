@@ -155,6 +155,10 @@ class HuaweiCT(ConfTree):
                 |header\sshell\sinformation\s
                 |snmp-agent\s?
                 |info-center\s
+                |ssh\s(?:server|client)
+                |(?:undo )?s?telnet\s
+                |ftp\s
+                |ecc\speer-public-key\s
                 )""",
             repl=r"\n\g<1>",
             string=config,
