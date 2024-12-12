@@ -426,6 +426,55 @@ def test_ordered_sections() -> None:
     assert diff.config == diff_ordered_root_wo_reorder
 
 
+def test_ordered_root() -> None:
+    current_config = dedent(
+        """
+        dns resolve
+        dns server 1.1.1.1
+        dns server 1.1.1.3
+        dns server 1.1.1.4
+        dns server 1.1.1.2
+        dns domain company.ru
+        """
+    ).strip()
+    target_config = dedent(
+        """
+        dns resolve
+        dns server 1.1.1.1
+        dns server 1.1.1.2
+        dns server 1.1.1.3
+        dns server 1.1.1.4
+        dns domain company.ru
+        """
+    ).strip()
+    not_ordered_diff_config = ""
+    ordered_diff_config = dedent(
+        """
+        undo dns server 1.1.1.3
+        #
+        undo dns server 1.1.1.4
+        #
+        undo dns domain company.ru
+        #
+        dns server 1.1.1.3
+        #
+        dns server 1.1.1.4
+        #
+        dns domain company.ru
+        #
+        """
+    ).strip()
+
+    parser = CTreeParser(Vendor.HUAWEI)
+    current = parser.parse(current_config)
+    target = parser.parse(target_config)
+    not_ordered_diff = CTreeDiffer.diff(current, target)
+    assert not_ordered_diff.config == not_ordered_diff_config
+
+    ordered_diff = CTreeDiffer.diff(current, target, ordered_sections=[""], reorder_root=False)
+    assert ordered_diff.config == ordered_diff_config
+
+
 def test_no_diff_sections() -> None:
     current_config = dedent(
         """
