@@ -27,7 +27,7 @@ jobs:
           poetry run ruff check
       - name: mypy
         run: |
-          poetry run mypy conf_tree
+          poetry run mypy ctreepo
           poetry run mypy tests
       - name: pytest
         run: |

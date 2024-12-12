@@ -59,7 +59,7 @@ ignore = [
 convention = "google"
 
 [tool.pytest.ini_options]
-addopts = "-vrA --cov=conf_tree --cov-report term --cov-report html"
+addopts = "-vrA --cov=ctreepo --cov-report term --cov-report html"
 testpaths = [
     "./tests/",
 ]
