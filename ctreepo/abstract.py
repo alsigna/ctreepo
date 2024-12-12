@@ -4,10 +4,10 @@ import re
 from abc import ABC, abstractmethod
 from collections import deque
 
-__all__ = ("ConfTree",)
+__all__ = ("CTree",)
 
 
-class ConfTree(ABC):
+class CTree(ABC):
     __slots__ = ["line", "parent", "children", "tags"]
 
     @property
@@ -61,14 +61,14 @@ class ConfTree(ABC):
     masking_string: str = "******"
     # empty_section_placeholder = "<-empty-section->"
 
-    def __init__(self, line: str = "", parent: ConfTree | None = None, tags: list[str] | None = None) -> None:
+    def __init__(self, line: str = "", parent: CTree | None = None, tags: list[str] | None = None) -> None:
         self.line = line.strip()
 
         # pattern = "|".join(self.mask_lines)
         # self.masked_line = re.sub(rf"({pattern}) \S+", rf"\1 {self.mask_pattern}", self.line)
 
         self.parent = parent
-        self.children: dict[str, ConfTree] = {}
+        self.children: dict[str, CTree] = {}
 
         if tags is not None:
             self.tags = tags
@@ -137,7 +137,7 @@ class ConfTree(ABC):
         Returns:
             bool: равны или нет узлы
         """
-        if not isinstance(other, ConfTree):
+        if not isinstance(other, CTree):
             return NotImplemented
         # возможно стоит сравнивать маскированные строки, что бы исключить разницу из-за хешей
         if self.line != other.line:
@@ -269,7 +269,7 @@ class ConfTree(ABC):
     def masked_patch(self) -> str:
         return self._build_patch(masked=True)
 
-    def _copy(self, children: bool, parent: ConfTree | None) -> ConfTree:
+    def _copy(self, children: bool, parent: CTree | None) -> CTree:
         if self.parent is not None and parent is None:
             parent = self.parent._copy(children=False, parent=None)
 
@@ -279,20 +279,20 @@ class ConfTree(ABC):
                 _ = child._copy(children, new_obj)
         return new_obj
 
-    def copy(self, children: bool = True) -> ConfTree:
+    def copy(self, children: bool = True) -> CTree:
         root = self._copy(children=children, parent=None)
         while root.parent is not None:
             root = root.parent
         return root
 
-    def merge(self, other: ConfTree) -> None:
+    def merge(self, other: CTree) -> None:
         for line, node in other.children.items():
             if line not in self.children:
                 _ = node._copy(children=True, parent=self)
             else:
                 self.children[line].merge(node)
 
-    def _subtract(self, other: ConfTree, masked: bool = False) -> None:
+    def _subtract(self, other: CTree, masked: bool = False) -> None:
         nodes_to_delete = []
         for child in self.children.values():
             line = child.exists_in(other, masked)
@@ -304,12 +304,12 @@ class ConfTree(ABC):
         for node in nodes_to_delete:
             node.delete()
 
-    def subtract(self, other: ConfTree) -> ConfTree:
+    def subtract(self, other: CTree) -> CTree:
         result = self.copy()
         result._subtract(other=other)
         return result
 
-    def _apply(self, other: ConfTree) -> None:
+    def _apply(self, other: CTree) -> None:
         for child in other.children.values():
             if child.line.startswith(child.undo):
                 line = child.line.replace(child.undo, "").strip()
@@ -321,7 +321,7 @@ class ConfTree(ABC):
                 else:
                     child._copy(children=True, parent=self)
 
-    def apply(self, other: ConfTree) -> ConfTree:
+    def apply(self, other: CTree) -> CTree:
         result = self.copy()
         result._apply(other=other)
         return result
@@ -333,7 +333,7 @@ class ConfTree(ABC):
             for child in self.children.values():
                 child.rebuild(deep)
 
-    def exists_in(self, other: ConfTree, masked: bool = False) -> str:
+    def exists_in(self, other: CTree, masked: bool = False) -> str:
         if masked:
             for line, node in other.children.items():
                 if self.masked_line == node.masked_line:
@@ -346,7 +346,7 @@ class ConfTree(ABC):
                 return ""
 
     def reorder(self, tags: list[str], *, reverse: bool = False) -> None:
-        def _get_children_tags(node: ConfTree) -> list[str]:
+        def _get_children_tags(node: CTree) -> list[str]:
             tags = node.tags.copy()
             for child in node.children.values():
                 tags.extend(_get_children_tags(child))
@@ -356,7 +356,7 @@ class ConfTree(ABC):
             return
 
         no_tags = "_no_tags_nodes"
-        children: dict[str, list[ConfTree]]
+        children: dict[str, list[CTree]]
 
         if not reverse:
             children = {tag: [] for tag in tags}

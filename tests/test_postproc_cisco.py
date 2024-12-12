@@ -1,6 +1,6 @@
 from textwrap import dedent
 
-from conf_tree import ConfTreeDiffer, ConfTreeParser, Vendor
+from ctreepo import CTreeDiffer, CTreeParser, Vendor
 
 
 def test_cisco_no_post_processing() -> None:
@@ -30,12 +30,12 @@ def test_cisco_no_post_processing() -> None:
         !
         """
     ).strip()
-    parser = ConfTreeParser(Vendor.CISCO)
+    parser = CTreeParser(Vendor.CISCO)
 
     current = parser.parse(current_config)
     target = parser.parse(target_config)
 
-    diff = ConfTreeDiffer.diff(current, target)
+    diff = CTreeDiffer.diff(current, target)
     assert diff.config == diff_config
 
 
@@ -129,12 +129,12 @@ def test_cisco_bgp_post_processing() -> None:
         !
         """
     ).strip()
-    parser = ConfTreeParser(Vendor.CISCO)
+    parser = CTreeParser(Vendor.CISCO)
 
     current = parser.parse(current_config)
     target = parser.parse(target_config)
 
-    diff_raw = ConfTreeDiffer.diff(current, target, post_proc_rules=[])
-    diff_processed = ConfTreeDiffer.diff(current, target)
+    diff_raw = CTreeDiffer.diff(current, target, post_proc_rules=[])
+    diff_processed = CTreeDiffer.diff(current, target)
     assert diff_raw.config == diff_raw_config
     assert diff_processed.config == diff_processed_config

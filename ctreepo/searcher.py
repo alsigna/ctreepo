@@ -1,22 +1,22 @@
 import re
 from typing import Literal
 
-from .abstract import ConfTree
+from .abstract import CTree
 
-__all__ = ("ConfTreeSearcher",)
+__all__ = ("CTreeSearcher",)
 
 
-class ConfTreeSearcher:
+class CTreeSearcher:
     @classmethod
     def _search(
         cls,
-        ct: ConfTree,
+        ct: CTree,
         string: str,
         include_tags: list[str],
         include_mode: Literal["or", "and"],
         exclude_tags: list[str],
         include_children: bool,
-    ) -> list[ConfTree]:
+    ) -> list[CTree]:
         """рекурсивный поиск."""
         result = []
 
@@ -58,14 +58,14 @@ class ConfTreeSearcher:
     @classmethod
     def search(
         cls,
-        ct: ConfTree,
+        ct: CTree,
         *,
         string: str = "",
         include_tags: list[str] | None = None,
         include_mode: Literal["or", "and"] = "or",
         exclude_tags: list[str] | None = None,
         include_children: bool = False,
-    ) -> ConfTree:
+    ) -> CTree:
         """Поиск конфигурации в дереве.
 
         Args:

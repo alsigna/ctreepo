@@ -1,4 +1,4 @@
-from conf_tree import ConfTreeEnv, Vendor
+from ctreepo import CTreeEnv, Vendor
 
 
 def get_configs() -> tuple[str, str]:
@@ -10,12 +10,12 @@ def get_configs() -> tuple[str, str]:
     return existed, target
 
 
-def get_ct_environment_naive() -> ConfTreeEnv:
-    return ConfTreeEnv(vendor=Vendor.CISCO)
+def get_ct_environment_naive() -> CTreeEnv:
+    return CTreeEnv(vendor=Vendor.CISCO)
 
 
-def get_ct_environment_no_diff() -> ConfTreeEnv:
-    return ConfTreeEnv(
+def get_ct_environment_no_diff() -> CTreeEnv:
+    return CTreeEnv(
         vendor=Vendor.CISCO,
         no_diff_sections=[
             r"prefix-set \S+",

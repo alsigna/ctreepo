@@ -3,7 +3,7 @@ from typing import cast
 
 import pytest
 
-from conf_tree import AristaCT, ConfTree, ConfTreeParser, ConfTreeSearcher, ConfTreeSerializer, TaggingRulesDict, Vendor
+from ctreepo import AristaCT, CTree, CTreeParser, CTreeSearcher, CTreeSerializer, TaggingRulesDict, Vendor
 
 
 @pytest.fixture(scope="function")
@@ -92,11 +92,11 @@ def root() -> AristaCT:
         ],
     }
     loader = TaggingRulesDict(tagging_rules_dict)  # type: ignore[arg-type]
-    parser = ConfTreeParser(
+    parser = CTreeParser(
         vendor=Vendor.ARISTA,
         tagging_rules=loader,
     )
-    root: ConfTree = parser.parse(config_str)
+    root: CTree = parser.parse(config_str)
     root = cast(AristaCT, root)
     return root
 
@@ -453,7 +453,7 @@ def test_to_dict(root: AristaCT) -> None:
             },
         },
     }
-    serialized = ConfTreeSerializer.to_dict(root)
+    serialized = CTreeSerializer.to_dict(root)
     assert dst == serialized
 
 
@@ -675,11 +675,11 @@ def test_from_dict(root: AristaCT) -> None:
             },
         },
     }
-    deserialized = ConfTreeSerializer.from_dict(Vendor.ARISTA, src)
+    deserialized = CTreeSerializer.from_dict(Vendor.ARISTA, src)
     assert root == deserialized
 
     src["children"]["logging buffered 16000"]["tags"].append("changed")  # type: ignore[index]
-    deserialized = ConfTreeSerializer.from_dict(Vendor.ARISTA, src)
+    deserialized = CTreeSerializer.from_dict(Vendor.ARISTA, src)
     assert root != deserialized
 
 
@@ -912,9 +912,9 @@ def test_searcher(root: AristaCT) -> None:
         """
     ).strip()
 
-    qos = ConfTreeSearcher.search(root, include_tags=["qos"])
-    interface_or_qos = ConfTreeSearcher.search(root, include_tags=["qos", "interface"])
-    interface_and_qos = ConfTreeSearcher.search(root, include_tags=["qos", "interface"], include_mode="and")
+    qos = CTreeSearcher.search(root, include_tags=["qos"])
+    interface_or_qos = CTreeSearcher.search(root, include_tags=["qos", "interface"])
+    interface_and_qos = CTreeSearcher.search(root, include_tags=["qos", "interface"], include_mode="and")
     assert qos.config == qos_config
     assert interface_or_qos.config == interface_or_qos_config
     assert interface_and_qos.config == interface_and_qos_config

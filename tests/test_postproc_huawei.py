@@ -1,6 +1,6 @@
 from textwrap import dedent
 
-from conf_tree import ConfTreeDiffer, ConfTreeParser, Vendor
+from ctreepo import CTreeDiffer, CTreeParser, Vendor
 
 
 def test_huawei_interface_post_processing_1() -> None:
@@ -81,12 +81,12 @@ def test_huawei_interface_post_processing_1() -> None:
         clear configuration interface 25GE1/0/1.1234 mode l2
         """
     ).strip()
-    parser = ConfTreeParser(Vendor.HUAWEI)
+    parser = CTreeParser(Vendor.HUAWEI)
 
     root1 = parser.parse(config_interfaces_1)
     root2 = parser.parse(config_interfaces_2)
 
-    diff = ConfTreeDiffer.diff(root1, root2)
+    diff = CTreeDiffer.diff(root1, root2)
     assert diff.config == diff_config
     assert diff.patch == diff_patch
 
@@ -154,12 +154,12 @@ def test_huawei_interface_post_processing_2() -> None:
         quit
         """
     ).strip()
-    parser = ConfTreeParser(Vendor.HUAWEI)
+    parser = CTreeParser(Vendor.HUAWEI)
 
     current = parser.parse(current_config)
     target = parser.parse(target_config)
 
-    diff = ConfTreeDiffer.diff(current, target)
+    diff = CTreeDiffer.diff(current, target)
     assert diff.config == diff_config
     assert diff.patch == diff_patch
 
@@ -289,12 +289,12 @@ def test_huawei_route_policy_post_processing() -> None:
         undo route-policy RP_NAME_2 node 20
         """
     ).strip()
-    parser = ConfTreeParser(vendor=Vendor.HUAWEI)
+    parser = CTreeParser(vendor=Vendor.HUAWEI)
 
     current = parser.parse(current_config)
     target = parser.parse(target_config)
 
-    diff = ConfTreeDiffer.diff(current, target)
+    diff = CTreeDiffer.diff(current, target)
     assert diff.config == diff_config
     assert diff.patch == diff_patch
 
@@ -328,12 +328,12 @@ def test_huawei_prefix_list_post_processing() -> None:
         """
     ).strip()
 
-    parser = ConfTreeParser(vendor=Vendor.HUAWEI)
+    parser = CTreeParser(vendor=Vendor.HUAWEI)
 
     current = parser.parse(current_config)
     target = parser.parse(target_config)
 
-    diff = ConfTreeDiffer.diff(current, target)
+    diff = CTreeDiffer.diff(current, target)
     assert diff.config == diff_config
     assert diff.patch == diff_patch
 
@@ -375,13 +375,13 @@ def test_huawei_user_post_processing_1() -> None:
         """
     ).strip()
     diff_config_processed = ""
-    parser = ConfTreeParser(Vendor.HUAWEI)
+    parser = CTreeParser(Vendor.HUAWEI)
     target = parser.parse(target_config)
     current = parser.parse(current_config)
-    diff_raw = ConfTreeDiffer.diff(current, target, post_proc_rules=[])
+    diff_raw = CTreeDiffer.diff(current, target, post_proc_rules=[])
     assert diff_raw.config == diff_config_raw
 
-    diff_processed = ConfTreeDiffer.diff(current, target)
+    diff_processed = CTreeDiffer.diff(current, target)
     assert diff_processed.config == diff_config_processed
 
 
@@ -428,13 +428,13 @@ def test_huawei_user_post_processing_2() -> None:
         #
         """
     ).strip()
-    parser = ConfTreeParser(Vendor.HUAWEI)
+    parser = CTreeParser(Vendor.HUAWEI)
     target = parser.parse(target_config)
     current = parser.parse(current_config)
-    diff_raw = ConfTreeDiffer.diff(current, target, post_proc_rules=[])
+    diff_raw = CTreeDiffer.diff(current, target, post_proc_rules=[])
     assert diff_raw.config == diff_config_raw
 
-    diff_processed = ConfTreeDiffer.diff(current, target)
+    diff_processed = CTreeDiffer.diff(current, target)
     assert diff_processed.config == diff_config_processed
 
 
@@ -489,13 +489,13 @@ def test_huawei_user_post_processing_3() -> None:
         """
     ).strip()
 
-    parser = ConfTreeParser(Vendor.HUAWEI)
+    parser = CTreeParser(Vendor.HUAWEI)
     target = parser.parse(target_config)
     current = parser.parse(current_config)
-    diff_raw = ConfTreeDiffer.diff(current, target, post_proc_rules=[])
+    diff_raw = CTreeDiffer.diff(current, target, post_proc_rules=[])
     assert diff_raw.config == diff_config_raw
 
-    diff_processed = ConfTreeDiffer.diff(current, target)
+    diff_processed = CTreeDiffer.diff(current, target)
     assert diff_processed.config == diff_config_processed
 
 
@@ -559,13 +559,13 @@ def test_huawei_user_post_processing_4() -> None:
         """
     ).strip()
 
-    parser = ConfTreeParser(Vendor.HUAWEI)
+    parser = CTreeParser(Vendor.HUAWEI)
     target = parser.parse(target_config)
     current = parser.parse(current_config)
-    diff_raw = ConfTreeDiffer.diff(current, target, post_proc_rules=[])
+    diff_raw = CTreeDiffer.diff(current, target, post_proc_rules=[])
     assert diff_raw.config == diff_config_raw
 
-    diff_processed = ConfTreeDiffer.diff(current, target)
+    diff_processed = CTreeDiffer.diff(current, target)
     assert diff_processed.config == diff_config_processed
 
 
@@ -617,13 +617,13 @@ def test_huawei_user_post_processing_5() -> None:
         """
     ).strip()
 
-    parser = ConfTreeParser(Vendor.HUAWEI)
+    parser = CTreeParser(Vendor.HUAWEI)
     target = parser.parse(target_config)
     current = parser.parse(current_config)
-    diff_raw = ConfTreeDiffer.diff(current, target, post_proc_rules=[])
+    diff_raw = CTreeDiffer.diff(current, target, post_proc_rules=[])
     assert diff_raw.config == diff_config_raw
 
-    diff_processed = ConfTreeDiffer.diff(current, target)
+    diff_processed = CTreeDiffer.diff(current, target)
     assert diff_processed.config == diff_config_processed
 
 
@@ -684,13 +684,13 @@ def test_huawei_user_post_processing_6() -> None:
         """
     ).strip()
 
-    parser = ConfTreeParser(Vendor.HUAWEI)
+    parser = CTreeParser(Vendor.HUAWEI)
     target = parser.parse(target_config)
     current = parser.parse(current_config)
-    diff_raw = ConfTreeDiffer.diff(current, target, post_proc_rules=[])
+    diff_raw = CTreeDiffer.diff(current, target, post_proc_rules=[])
     assert diff_raw.config == diff_config_raw
 
-    diff_processed = ConfTreeDiffer.diff(current, target)
+    diff_processed = CTreeDiffer.diff(current, target)
     assert diff_processed.config == diff_config_processed
 
 
@@ -799,10 +799,10 @@ def test_huawei_postproc_bgp() -> None:
         """
     ).strip()
 
-    parser = ConfTreeParser(Vendor.HUAWEI)
+    parser = CTreeParser(Vendor.HUAWEI)
     current = parser.parse(current_config)
     target = parser.parse(target_config)
-    diff = ConfTreeDiffer.diff(current, target)
+    diff = CTreeDiffer.diff(current, target)
     assert diff.config == diff_config
     assert diff.patch == diff_patch
 
@@ -892,10 +892,10 @@ def test_huawei_postproc_aaa() -> None:
         """
     ).strip()
 
-    parser = ConfTreeParser(Vendor.HUAWEI)
+    parser = CTreeParser(Vendor.HUAWEI)
     current = parser.parse(current_config)
     target = parser.parse(target_config)
-    diff = ConfTreeDiffer.diff(current, target)
+    diff = CTreeDiffer.diff(current, target)
     assert diff.config == diff_config
     assert diff.patch == diff_patch
 
@@ -933,13 +933,13 @@ def test_huawei_postproc_tacacs_1() -> None:
     ).strip()
     diff_processed = ""
 
-    parser = ConfTreeParser(Vendor.HUAWEI)
+    parser = CTreeParser(Vendor.HUAWEI)
     current = parser.parse(current_config)
     target = parser.parse(target_config)
-    diff = ConfTreeDiffer.diff(current, target, post_proc_rules=[])
+    diff = CTreeDiffer.diff(current, target, post_proc_rules=[])
     assert diff.config == diff_raw
 
-    diff = ConfTreeDiffer.diff(current, target)
+    diff = CTreeDiffer.diff(current, target)
     assert diff.config == diff_processed
 
 
@@ -982,11 +982,11 @@ def test_huawei_postproc_tacacs_2() -> None:
         """
     ).strip()
 
-    parser = ConfTreeParser(Vendor.HUAWEI)
+    parser = CTreeParser(Vendor.HUAWEI)
     current = parser.parse(current_config)
     target = parser.parse(target_config)
-    diff = ConfTreeDiffer.diff(current, target, post_proc_rules=[])
+    diff = CTreeDiffer.diff(current, target, post_proc_rules=[])
     assert diff.config == diff_raw
 
-    diff = ConfTreeDiffer.diff(current, target)
+    diff = CTreeDiffer.diff(current, target)
     assert diff.config == diff_processed

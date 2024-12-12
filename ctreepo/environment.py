@@ -1,18 +1,18 @@
 from pathlib import Path
 from typing import Any, Literal
 
-from .abstract import ConfTree
-from .differ import ConfTreeDiffer
+from .abstract import CTree
+from .differ import CTreeDiffer
 from .models import Vendor
-from .parser import ConfTreeParser, TaggingRulesDict, TaggingRulesFile
-from .postproc import ConfTreePostProc
-from .searcher import ConfTreeSearcher
-from .serializer import ConfTreeSerializer
+from .parser import CTreeParser, TaggingRulesDict, TaggingRulesFile
+from .postproc import CTreePostProc
+from .searcher import CTreeSearcher
+from .serializer import CTreeSerializer
 
-__all__ = ("ConfTreeEnv",)
+__all__ = ("CTreeEnv",)
 
 
-class ConfTreeEnv:
+class CTreeEnv:
     def __init__(
         self,
         vendor: Vendor,
@@ -20,7 +20,7 @@ class ConfTreeEnv:
         tagging_rules: Path | str | list[dict[str, str | list[str]]] | None = None,
         ordered_sections: list[str] | None = None,
         no_diff_sections: list[str] | None = None,
-        post_proc_rules: list[type[ConfTreePostProc]] | None = None,
+        post_proc_rules: list[type[CTreePostProc]] | None = None,
     ):
         if isinstance(tagging_rules, str) or isinstance(tagging_rules, Path):
             _tr_file = TaggingRulesFile(tagging_rules)
@@ -32,7 +32,7 @@ class ConfTreeEnv:
             _tr_dict = None
 
         self.vendor = vendor
-        self._parser = ConfTreeParser(vendor=self.vendor, tagging_rules=_tr_file or _tr_dict)
+        self._parser = CTreeParser(vendor=self.vendor, tagging_rules=_tr_file or _tr_dict)
         self._ordered_sections = ordered_sections
         self._no_diff_sections = no_diff_sections
         self._post_proc_rules = post_proc_rules
@@ -40,19 +40,19 @@ class ConfTreeEnv:
     def parse(
         self,
         config: str,
-    ) -> ConfTree:
+    ) -> CTree:
         return self._parser.parse(
             config=config,
         )
 
     def diff(
         self,
-        a: ConfTree,
-        b: ConfTree,
+        a: CTree,
+        b: CTree,
         masked: bool = False,
         reorder_root: bool = True,
-    ) -> ConfTree:
-        return ConfTreeDiffer.diff(
+    ) -> CTree:
+        return CTreeDiffer.diff(
             a=a,
             b=b,
             masked=masked,
@@ -64,30 +64,30 @@ class ConfTreeEnv:
 
     def to_dict(
         self,
-        ct: ConfTree,
+        ct: CTree,
     ) -> dict[str, Any]:
-        return ConfTreeSerializer.to_dict(root=ct)
+        return CTreeSerializer.to_dict(root=ct)
 
     def from_dict(
         self,
         data: dict[str, Any],
-    ) -> ConfTree:
-        return ConfTreeSerializer.from_dict(
+    ) -> CTree:
+        return CTreeSerializer.from_dict(
             vendor=self.vendor,
             data=data,
         )
 
     def search(
         self,
-        ct: ConfTree,
+        ct: CTree,
         *,
         string: str = "",
         include_tags: list[str] | None = None,
         include_mode: Literal["or", "and"] = "or",
         exclude_tags: list[str] | None = None,
         include_children: bool = False,
-    ) -> ConfTree:
-        return ConfTreeSearcher.search(
+    ) -> CTree:
+        return CTreeSearcher.search(
             ct=ct,
             string=string,
             include_tags=include_tags,

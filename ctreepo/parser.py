@@ -7,12 +7,12 @@ from typing import Type
 
 import yaml
 
-from .abstract import ConfTree
-from .factory import ConfTreeFactory
+from .abstract import CTree
+from .factory import CTreeFactory
 from .models import TaggingRule, Vendor
 
 __all__ = (
-    "ConfTreeParser",
+    "CTreeParser",
     "TaggingRules",
     "TaggingRulesFile",
     "TaggingRulesDict",
@@ -96,9 +96,9 @@ class TaggingRulesDict(TaggingRules):
         self.rules = result
 
 
-class ConfTreeParser:
+class CTreeParser:
     def __init__(self, vendor: Vendor, tagging_rules: TaggingRules | None = None) -> None:
-        self._class = ConfTreeFactory.get_class(vendor)
+        self._class = CTreeFactory.get_class(vendor)
         if tagging_rules is None:
             self.tagging_rules = []
         else:
@@ -110,11 +110,11 @@ class ConfTreeParser:
                 return [*rule.tags, *m.groups()]
         return None
 
-    def _parse(self, ct: Type[ConfTree], config: str) -> ConfTree:
+    def _parse(self, ct: Type[CTree], config: str) -> CTree:
         root = ct()
         section = [root]
         spaces = [0]
-        previous_node: ConfTree = root
+        previous_node: CTree = root
         for line in config.splitlines():
             if len(line.strip()) == 0:
                 continue
@@ -151,7 +151,7 @@ class ConfTreeParser:
 
         return root
 
-    def parse(self, config: str) -> ConfTree:
+    def parse(self, config: str) -> CTree:
         config = self._class.pre_run(config)
         root = self._parse(self._class, config)
         root.post_run()

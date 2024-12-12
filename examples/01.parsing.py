@@ -1,4 +1,4 @@
-from conf_tree import ConfTreeEnv, Vendor
+from ctreepo import CTreeEnv, Vendor
 
 
 def get_configs() -> str:
@@ -7,8 +7,8 @@ def get_configs() -> str:
     return config
 
 
-def get_ct_environment() -> ConfTreeEnv:
-    return ConfTreeEnv(vendor=Vendor.CISCO)
+def get_ct_environment() -> CTreeEnv:
+    return CTreeEnv(vendor=Vendor.CISCO)
 
 
 if __name__ == "__main__":

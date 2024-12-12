@@ -2,8 +2,8 @@ from textwrap import dedent
 
 import pytest
 
-from conf_tree import AristaCT, ConfTreeDiffer, ConfTreeParser, HuaweiCT, Vendor
-from conf_tree.postproc_huawei import HuaweiPostProcInterface, HuaweiPostProcRoutePolicy
+from ctreepo import AristaCT, CTreeDiffer, CTreeParser, HuaweiCT, Vendor
+from ctreepo.postproc_huawei import HuaweiPostProcInterface, HuaweiPostProcRoutePolicy
 
 config_interfaces_1 = """
 interface 25GE1/0/1
@@ -80,12 +80,12 @@ def test_diff_wo_rules() -> None:
         undo interface 25GE1/0/1.1234 mode l2
         """
     ).strip()
-    parser = ConfTreeParser(vendor=Vendor.HUAWEI)
+    parser = CTreeParser(vendor=Vendor.HUAWEI)
 
     root1 = parser.parse(config_interfaces_1)
     root2 = parser.parse(config_interfaces_2)
 
-    diff = ConfTreeDiffer.diff(root1, root2, post_proc_rules=[])
+    diff = CTreeDiffer.diff(root1, root2, post_proc_rules=[])
     assert diff.config == diff_config
     assert diff.patch == diff_patch
 
@@ -111,12 +111,12 @@ def test_diff_w_rules() -> None:
         clear configuration interface 25GE1/0/1.1234 mode l2
         """
     ).strip()
-    parser = ConfTreeParser(vendor=Vendor.HUAWEI)
+    parser = CTreeParser(vendor=Vendor.HUAWEI)
 
     root1 = parser.parse(config_interfaces_1)
     root2 = parser.parse(config_interfaces_2)
 
-    diff = ConfTreeDiffer.diff(root1, root2)
+    diff = CTreeDiffer.diff(root1, root2)
     assert diff.config == diff_config
     assert diff.patch == diff_patch
 
@@ -128,15 +128,15 @@ def test_vendor_mismatch() -> None:
          community 123:12345
         """
     )
-    parser1 = ConfTreeParser(vendor=Vendor.HUAWEI)
-    parser2 = ConfTreeParser(vendor=Vendor.ARISTA)
+    parser1 = CTreeParser(vendor=Vendor.HUAWEI)
+    parser2 = CTreeParser(vendor=Vendor.ARISTA)
     root1 = parser1.parse(config)
     root2 = parser2.parse(config)
     assert root1.__class__ == HuaweiCT
     assert root2.__class__ == AristaCT
 
     with pytest.raises(RuntimeError) as exc:
-        ConfTreeDiffer.diff(root1, root2)
+        CTreeDiffer.diff(root1, root2)
     assert str(exc.value) == "a and b should be instances of the same class"
 
 
@@ -161,12 +161,12 @@ def test_processing_vendor_check() -> None:
         no interface 25GE1/0/1.1234 mode l2
         """
     ).strip()
-    parser = ConfTreeParser(vendor=Vendor.ARISTA)
+    parser = CTreeParser(vendor=Vendor.ARISTA)
 
     root1 = parser.parse(config_interfaces_1)
     root2 = parser.parse(config_interfaces_2)
 
-    diff = ConfTreeDiffer.diff(
+    diff = CTreeDiffer.diff(
         a=root1,
         b=root2,
         post_proc_rules=[
@@ -209,12 +209,12 @@ def test_reordered_config() -> None:
         """
     ).strip()
 
-    parser = ConfTreeParser(vendor=Vendor.HUAWEI)
+    parser = CTreeParser(vendor=Vendor.HUAWEI)
     root1 = parser.parse(config1)
     root2 = parser.parse(config2)
 
-    print(ConfTreeDiffer.diff(root1, root2).config)
-    assert len(ConfTreeDiffer.diff(root1, root2).config) == 0
+    print(CTreeDiffer.diff(root1, root2).config)
+    assert len(CTreeDiffer.diff(root1, root2).config) == 0
 
 
 def test_ordered_sections() -> None:
@@ -383,41 +383,41 @@ def test_ordered_sections() -> None:
         """
     ).strip()
 
-    parser = ConfTreeParser(Vendor.HUAWEI)
+    parser = CTreeParser(Vendor.HUAWEI)
     target = parser.parse(target_config)
     current = parser.parse(current_config)
-    diff = ConfTreeDiffer.diff(current, target)
+    diff = CTreeDiffer.diff(current, target)
     assert diff.config == diff_default
 
-    diff = ConfTreeDiffer.diff(
+    diff = CTreeDiffer.diff(
         current,
         target,
         ordered_sections=[r"^aaa group server tacacs\+"],
     )
     assert diff.config == diff_ordered_tacacs
 
-    diff = ConfTreeDiffer.diff(
+    diff = CTreeDiffer.diff(
         current,
         target,
         ordered_sections=[r"^aaa group server tacacs\+", r"^section \d+$"],
     )
     assert diff.config == diff_ordered_tacacs_and_section
 
-    diff = ConfTreeDiffer.diff(
+    diff = CTreeDiffer.diff(
         current,
         target,
         ordered_sections=[r"^section \d+ / sub-section \d+$"],
     )
     assert diff.config == diff_ordered_subsection
 
-    diff = ConfTreeDiffer.diff(
+    diff = CTreeDiffer.diff(
         current,
         target,
         ordered_sections=[r".*"],
     )
     assert diff.config == diff_ordered_root
 
-    diff = ConfTreeDiffer.diff(
+    diff = CTreeDiffer.diff(
         current,
         target,
         ordered_sections=[r".*"],
@@ -586,18 +586,18 @@ def test_no_diff_sections() -> None:
         """
     ).strip()
 
-    parser = ConfTreeParser(Vendor.HUAWEI)
+    parser = CTreeParser(Vendor.HUAWEI)
     target = parser.parse(target_config)
     current = parser.parse(current_config)
 
-    diff_raw = ConfTreeDiffer.diff(current, target, post_proc_rules=[])
+    diff_raw = CTreeDiffer.diff(current, target, post_proc_rules=[])
     assert diff_raw.config == diff_raw_config
     assert diff_raw.patch == diff_raw_patch
 
-    diff_raw_empty_section = ConfTreeDiffer.diff(current, target)
+    diff_raw_empty_section = CTreeDiffer.diff(current, target)
     assert diff_raw_empty_section.patch == diff_raw_empty_section_patch
 
-    diff_no_diff = ConfTreeDiffer.diff(
+    diff_no_diff = CTreeDiffer.diff(
         a=current,
         b=target,
         no_diff_sections=[r"^xpl \S+ \S+$"],
@@ -642,8 +642,8 @@ def test_double_undo() -> None:
         !
         """
     ).strip()
-    parser = ConfTreeParser(Vendor.CISCO)
+    parser = CTreeParser(Vendor.CISCO)
     current = parser.parse(current_config)
     target = parser.parse(target_config)
-    diff = ConfTreeDiffer.diff(current, target)
+    diff = CTreeDiffer.diff(current, target)
     assert diff.config == diff_config

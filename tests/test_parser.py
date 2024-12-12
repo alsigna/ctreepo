@@ -3,7 +3,7 @@ from textwrap import dedent
 
 import pytest
 
-from conf_tree import ConfTreeParser, TaggingRule, TaggingRules, TaggingRulesDict, TaggingRulesFile, Vendor
+from ctreepo import CTreeParser, TaggingRule, TaggingRules, TaggingRulesDict, TaggingRulesFile, Vendor
 
 huawei_config = dedent(
     """
@@ -95,11 +95,11 @@ def get_file_loader() -> TaggingRules:
 
 
 def test_instance() -> None:
-    parser = ConfTreeParser(Vendor.HUAWEI)
+    parser = CTreeParser(Vendor.HUAWEI)
     root = parser.parse(huawei_config)
     assert root.config == huawei_config
 
-    parser = ConfTreeParser(Vendor.ARISTA)
+    parser = CTreeParser(Vendor.ARISTA)
     root = parser.parse(arista_config)
     assert root.config == arista_config
 
@@ -120,7 +120,7 @@ def test_empty_line() -> None:
         !
         """
     ).strip()
-    parser = ConfTreeParser(Vendor.ARISTA)
+    parser = CTreeParser(Vendor.ARISTA)
     root = parser.parse(src_config)
     assert root.config == config
 
@@ -144,13 +144,13 @@ def test_deep_nested() -> None:
         #
         """
     ).strip()
-    parser = ConfTreeParser(Vendor.HUAWEI)
+    parser = CTreeParser(Vendor.HUAWEI)
     root = parser.parse(config)
     assert root.config == config
 
 
 def test_dict_rules(get_dict_loader: TaggingRules) -> None:
-    parser = ConfTreeParser(Vendor.HUAWEI, get_dict_loader)
+    parser = CTreeParser(Vendor.HUAWEI, get_dict_loader)
     assert parser.tagging_rules == [
         TaggingRule(regex=r"^ip vpn-instance (\S+)$", tags=["vpn"]),
         TaggingRule(regex=r"^ip vpn-instance (\S+) .* export-extcommunity evpn", tags=["rt"]),
@@ -162,7 +162,7 @@ def test_dict_rules(get_dict_loader: TaggingRules) -> None:
 
 
 def test_file_rules(get_file_loader: TaggingRules) -> None:
-    parser = ConfTreeParser(Vendor.HUAWEI, get_file_loader)
+    parser = CTreeParser(Vendor.HUAWEI, get_file_loader)
     assert parser.tagging_rules == [
         TaggingRule(regex=r"^ip vpn-instance (\S+)$", tags=["vpn"]),
         TaggingRule(regex=r"^ip vpn-instance (\S+) .* export-extcommunity evpn", tags=["rt"]),
@@ -174,7 +174,7 @@ def test_file_rules(get_file_loader: TaggingRules) -> None:
 
 
 def test_tags(get_dict_loader: TaggingRules) -> None:
-    parser = ConfTreeParser(Vendor.HUAWEI, get_dict_loader)
+    parser = CTreeParser(Vendor.HUAWEI, get_dict_loader)
     root = parser.parse(huawei_config)
     assert root.config == huawei_config
 
@@ -290,6 +290,6 @@ def test_repeated_section() -> None:
         #
         """
     ).strip()
-    parser = ConfTreeParser(Vendor.HUAWEI)
+    parser = CTreeParser(Vendor.HUAWEI)
     root = parser.parse(config)
     assert root.config == target_config

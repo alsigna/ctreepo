@@ -2,7 +2,7 @@ from textwrap import dedent
 
 import pytest
 
-from conf_tree import ConfTreeParser, ConfTreeSerializer, TaggingRules, TaggingRulesDict, Vendor
+from ctreepo import CTreeParser, CTreeSerializer, TaggingRules, TaggingRulesDict, Vendor
 
 config = dedent(
     """
@@ -163,15 +163,15 @@ def get_dict_loader() -> TaggingRules:
 
 
 def test_to_dict(get_dict_loader: TaggingRules) -> None:
-    parser = ConfTreeParser(vendor=Vendor.HUAWEI, tagging_rules=get_dict_loader)
+    parser = CTreeParser(vendor=Vendor.HUAWEI, tagging_rules=get_dict_loader)
     root = parser.parse(config)
-    serialized_config = ConfTreeSerializer.to_dict(root)
+    serialized_config = CTreeSerializer.to_dict(root)
     assert serialized_config == config_dict
 
 
 def test_from_dict(get_dict_loader: TaggingRules) -> None:
-    parser = ConfTreeParser(vendor=Vendor.HUAWEI, tagging_rules=get_dict_loader)
+    parser = CTreeParser(vendor=Vendor.HUAWEI, tagging_rules=get_dict_loader)
     root_from_config = parser.parse(config)
 
-    root_from_dict = ConfTreeSerializer.from_dict(Vendor.HUAWEI, config_dict)
+    root_from_dict = CTreeSerializer.from_dict(Vendor.HUAWEI, config_dict)
     assert root_from_config == root_from_dict

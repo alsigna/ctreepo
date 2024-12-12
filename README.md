@@ -1,6 +1,6 @@
-# Библиотека Conf-Tree
+# Библиотека CTreePO - Configuration Tree Patch Overview
 
-- [Библиотека Conf-Tree](#библиотека-conf-tree)
+- [Библиотека CTreePO - Configuration Tree Patch Overview](#библиотека-ctreepo---configuration-tree-patch-overview)
   - [Краткое описание](#краткое-описание)
   - [Быстрый пример (00.quick-start.py)](#быстрый-пример-00quick-startpy)
   - [Преобразование в дерево (01.parsing.py)](#преобразование-в-дерево-01parsingpy)
@@ -12,8 +12,6 @@
     - [Пост-обработка разницы конфигураций (06.postproc.diff.py)](#пост-обработка-разницы-конфигураций-06postprocdiffpy)
     - [Секции без вычисления разницы (07.no.diff.section.py)](#секции-без-вычисления-разницы-07nodiffsectionpy)
     - [Секции, где порядок имеет значение (08.ordered.diff.py)](#секции-где-порядок-имеет-значение-08ordereddiffpy)
-  - [История версий](#история-версий)
-  - [TODO](#todo)
 
 ## Краткое описание
 
@@ -34,7 +32,7 @@
     <summary>Листинг (click me)</summary>
 
 ```python
-In [2]: from conf_tree import ConfTreeEnv, Vendor
+In [2]: from ctreepo import CTreeEnv, Vendor
 
 In [3]: def get_configs() -> tuple[str, str]:
    ...:     with open(file="./examples/configs/cisco-router-1.txt", mode="r") as f:
@@ -44,12 +42,12 @@ In [3]: def get_configs() -> tuple[str, str]:
    ...:     return current_config, target_config
    ...: 
 
-In [4]: def get_ct_environment() -> ConfTreeEnv:
+In [4]: def get_ct_environment() -> CTreeEnv:
    ...:     tagging_rules: list[dict[str, str | list[str]]] = [
    ...:         {"regex": r"^router bgp \d+$", "tags": ["bgp"]},
    ...:         {"regex": r"^ip route \S+", "tags": ["static"]},
    ...:     ]
-   ...:     return ConfTreeEnv(
+   ...:     return CTreeEnv(
    ...:         vendor=Vendor.CISCO,
    ...:         tagging_rules=tagging_rules,
    ...:     )
@@ -145,7 +143,7 @@ router bgp 64512
     <summary>Листинг (click me)</summary>
 
 ```python
-In [1]: from conf_tree import ConfTreeEnv, Vendor
+In [1]: from ctreepo import CTreeEnv, Vendor
 
 In [2]: def get_configs() -> str:
    ...:     with open(file="./examples/configs/cisco-example-1.txt", mode="r") as f:
@@ -153,8 +151,8 @@ In [2]: def get_configs() -> str:
    ...:     return config
    ...: 
 
-In [3]: def get_ct_environment() -> ConfTreeEnv:
-   ...:     return ConfTreeEnv(vendor=Vendor.CISCO)
+In [3]: def get_ct_environment() -> CTreeEnv:
+   ...:     return CTreeEnv(vendor=Vendor.CISCO)
    ...: 
 
 In [4]: config_config = get_configs()
@@ -329,7 +327,7 @@ router bgp 64512 / address-family ipv4 / neighbor 192.168.255.1 activate
     <summary>Листинг (click me)</summary>
 
 ```python
-In [1]: from conf_tree import ConfTreeEnv, Vendor
+In [1]: from ctreepo import CTreeEnv, Vendor
    ...: 
    ...: 
    ...: def get_configs() -> str:
@@ -338,14 +336,14 @@ In [1]: from conf_tree import ConfTreeEnv, Vendor
    ...:     return config
    ...: 
    ...: 
-   ...: def get_ct_environment() -> ConfTreeEnv:
+   ...: def get_ct_environment() -> CTreeEnv:
    ...:     tagging_rules: list[dict[str, str | list[str]]] = [
    ...:         {"regex": r"^router bgp \d+$", "tags": ["bgp"]},
    ...:         {"regex": r"^interface (Tunnel1) / ip address .*", "tags": ["interface", "tunnel-1-ip"]},
    ...:         {"regex": r"^interface (Tunnel2) / ip address .*", "tags": ["interface", "tunnel-1-ip"]},
    ...:         {"regex": r"^interface (\S+)$", "tags": ["interface"]},
    ...:     ]
-   ...:     return ConfTreeEnv(
+   ...:     return CTreeEnv(
    ...:         vendor=Vendor.CISCO,
    ...:         tagging_rules=tagging_rules,
    ...:     )
@@ -496,7 +494,7 @@ interface Tunnel2 / ip address 10.1.0.2 255.255.255.0
     <summary>Листинг (click me)</summary>
 
 ```python
-In [1]: from conf_tree import ConfTreeEnv, Vendor
+In [1]: from ctreepo import CTreeEnv, Vendor
    ...: 
    ...: 
    ...: def get_configs() -> str:
@@ -505,12 +503,12 @@ In [1]: from conf_tree import ConfTreeEnv, Vendor
    ...:     return config
    ...: 
    ...: 
-   ...: def get_ct_environment() -> ConfTreeEnv:
+   ...: def get_ct_environment() -> CTreeEnv:
    ...:     tagging_rules: list[dict[str, str | list[str]]] = [
    ...:         {"regex": r"^router bgp \d+$", "tags": ["bgp"]},
    ...:         {"regex": r"^interface (\S+)$", "tags": ["interface"]},
    ...:     ]
-   ...:     return ConfTreeEnv(
+   ...:     return CTreeEnv(
    ...:         vendor=Vendor.CISCO,
    ...:         tagging_rules=tagging_rules,
    ...:     )
@@ -567,7 +565,7 @@ True
     <summary>Листинг (click me)</summary>
 
 ```python
-In [1]: from conf_tree import ConfTreeEnv, Vendor
+In [1]: from ctreepo import CTreeEnv, Vendor
    ...: 
    ...: 
    ...: def get_configs() -> str:
@@ -576,7 +574,7 @@ In [1]: from conf_tree import ConfTreeEnv, Vendor
    ...:     return config
    ...: 
    ...: 
-   ...: def get_ct_environment() -> ConfTreeEnv:
+   ...: def get_ct_environment() -> CTreeEnv:
    ...:     tagging_rules: list[dict[str, str | list[str]]] = [
    ...:         {"regex": r"^router bgp .* neighbor (\S+) route-map (\S+) (?:in|out)", "tags": ["rm-attach"]},
    ...:         {"regex": r"^router bgp \d+$", "tags": ["bgp"]},
@@ -584,7 +582,7 @@ In [1]: from conf_tree import ConfTreeEnv, Vendor
    ...:         {"regex": r"^ip community-list (?:standard|expanded) (\S+)", "tags": ["cl"]},
    ...:         {"regex": r"^ip prefix-list (\S+)", "tags": ["pl"]},
    ...:     ]
-   ...:     return ConfTreeEnv(
+   ...:     return CTreeEnv(
    ...:         vendor=Vendor.CISCO,
    ...:         tagging_rules=tagging_rules,
    ...:     )
@@ -737,7 +735,7 @@ some command 1
     <summary>Листинг (click me)</summary>
 
 ```python
-In [1]: from conf_tree import ConfTreeEnv, Vendor
+In [1]: from ctreepo import CTreeEnv, Vendor
    ...: 
    ...: 
    ...: def get_configs() -> tuple[str, str]:
@@ -749,8 +747,8 @@ In [1]: from conf_tree import ConfTreeEnv, Vendor
    ...:     return existed, target
    ...: 
    ...: 
-   ...: def get_ct_environment() -> ConfTreeEnv:
-   ...:     return ConfTreeEnv(vendor=Vendor.CISCO)
+   ...: def get_ct_environment() -> CTreeEnv:
+   ...:     return CTreeEnv(vendor=Vendor.CISCO)
    ...: 
 
 In [2]: existed_config, target_config = get_configs()
@@ -822,13 +820,13 @@ no router ospf 1
 ```python
 In [1]: import re
    ...: 
-   ...: from conf_tree import ConfTree, ConfTreeEnv, ConfTreePostProc, Vendor, register_rule
+   ...: from ctreepo import CTree, CTreeEnv, CTreePostProc, Vendor, register_rule
 
 In [2]: @register_rule
-   ...: class CiscoPostProcBGP(ConfTreePostProc):
+   ...: class CiscoPostProcBGP(CTreePostProc):
    ...:     @classmethod
-   ...:     def _delete_nodes(cls, ct: ConfTree, regex: str) -> None:
-   ...:         nodes_to_delete: list[ConfTree] = []
+   ...:     def _delete_nodes(cls, ct: CTree, regex: str) -> None:
+   ...:         nodes_to_delete: list[CTree] = []
    ...:         for node in ct.children.values():
    ...:             if len(node.children) != 0:
    ...:                 cls._delete_nodes(node, regex)
@@ -841,7 +839,7 @@ In [2]: @register_rule
    ...:             node.delete()
    ...:
    ...:     @classmethod
-   ...:     def process(cls, ct: ConfTree) -> None:
+   ...:     def process(cls, ct: CTree) -> None:
    ...:         bgp_nodes = [node for node in ct.children.values() if node.line.startswith("router bgp ")]
    ...:         if len(bgp_nodes) != 1:
    ...:             return
@@ -884,16 +882,16 @@ In [3]: def get_configs() -> tuple[str, str]:
    ...:     return existed, target
    ...: 
 
-In [4]: def get_ct_environment_naive() -> ConfTreeEnv:
-   ...:     return ConfTreeEnv(vendor=Vendor.CISCO, post_proc_rules=[])
+In [4]: def get_ct_environment_naive() -> CTreeEnv:
+   ...:     return CTreeEnv(vendor=Vendor.CISCO, post_proc_rules=[])
    ...: 
    ...: 
-   ...: def get_ct_environment_postproc() -> ConfTreeEnv:
+   ...: def get_ct_environment_postproc() -> CTreeEnv:
    ...:     # декоратор register_rule добавляет правило в общий список и можно тут не
    ...:     # переопределять его через аргумент post_proc_rules, но если необходимо 
    ...:     # протестировать только какие-то определенные правила, тогда явно задаем их 
    ...:     # или указываем пустой список, что бы получить наивную разницу без обработки
-   ...:     return ConfTreeEnv(vendor=Vendor.CISCO, post_proc_rules=[CiscoPostProcBGP])
+   ...:     return CTreeEnv(vendor=Vendor.CISCO, post_proc_rules=[CiscoPostProcBGP])
    ...: 
 
 In [5]: existed_config, target_config = get_configs()
@@ -949,7 +947,7 @@ router bgp 64512
     <summary>Листинг (click me)</summary>
 
 ```python
-In [1]: from conf_tree import ConfTreeEnv, Vendor
+In [1]: from ctreepo import CTreeEnv, Vendor
 
 In [2]: def get_configs() -> tuple[str, str]:
    ...:     with open(file="./examples/configs/cisco-no-diff-section-target.txt", mode="r") as f:
@@ -960,12 +958,12 @@ In [2]: def get_configs() -> tuple[str, str]:
    ...:     return existed, target
    ...: 
 
-In [3]: def get_ct_environment_naive() -> ConfTreeEnv:
-   ...:     return ConfTreeEnv(vendor=Vendor.CISCO)
+In [3]: def get_ct_environment_naive() -> CTreeEnv:
+   ...:     return CTreeEnv(vendor=Vendor.CISCO)
    ...: 
 
-In [4]: def get_ct_environment_no_diff() -> ConfTreeEnv:
-   ...:     return ConfTreeEnv(
+In [4]: def get_ct_environment_no_diff() -> CTreeEnv:
+   ...:     return CTreeEnv(
    ...:         vendor=Vendor.CISCO,
    ...:         no_diff_sections=[
    ...:             r"prefix-set \S+",
@@ -1036,7 +1034,7 @@ route-policy rp-google
     <summary>Листинг (click me)</summary>
 
 ```python
-In [1]: from conf_tree import ConfTreeEnv, Vendor
+In [1]: from ctreepo import CTreeEnv, Vendor
 
 In [2]: def get_configs() -> tuple[str, str]:
    ...:     with open(file="./examples/configs/cisco-ordered-diff-target.txt", mode="r") as f:
@@ -1047,12 +1045,12 @@ In [2]: def get_configs() -> tuple[str, str]:
    ...:     return existed, target
    ...: 
 
-In [3]: def get_ct_environment_naive() -> ConfTreeEnv:
-   ...:     return ConfTreeEnv(vendor=Vendor.CISCO)
+In [3]: def get_ct_environment_naive() -> CTreeEnv:
+   ...:     return CTreeEnv(vendor=Vendor.CISCO)
    ...: 
    ...: 
-   ...: def get_ct_environment_ordered() -> ConfTreeEnv:
-   ...:     return ConfTreeEnv(
+   ...: def get_ct_environment_ordered() -> CTreeEnv:
+   ...:     return CTreeEnv(
    ...:         vendor=Vendor.CISCO,
    ...:         ordered_sections=[
    ...:             r"ip access-list standard \S+$",
@@ -1097,13 +1095,3 @@ ip access-list extended act_TEST_EXT
 
 </details>
 <br>
-
-## История версий
-
-- 0.1.0 - код залит на github, протестирован cicd
-- 0.1.1 - добавлен readme, некоторые тесты
-
-## TODO
-
-- Добавить возможность указывать шаблон для команд, что бы при вычислении разницы можно было понять где аргументы, и если есть возможность, обойтись без undo-команды, так как команда с новыми аргументами перезапишет существующие опции.
-- Добавить возможность указывать как правильно удалять команды (часто это делается без указания опций и приходится править удаление команд через post-processing)

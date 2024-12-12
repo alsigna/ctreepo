@@ -1,4 +1,4 @@
-from conf_tree import ConfTreeEnv, Vendor
+from ctreepo import CTreeEnv, Vendor
 
 
 def get_configs() -> tuple[str, str]:
@@ -10,12 +10,12 @@ def get_configs() -> tuple[str, str]:
     return existed, target
 
 
-def get_ct_environment_naive() -> ConfTreeEnv:
-    return ConfTreeEnv(vendor=Vendor.CISCO)
+def get_ct_environment_naive() -> CTreeEnv:
+    return CTreeEnv(vendor=Vendor.CISCO)
 
 
-def get_ct_environment_ordered() -> ConfTreeEnv:
-    return ConfTreeEnv(
+def get_ct_environment_ordered() -> CTreeEnv:
+    return CTreeEnv(
         vendor=Vendor.CISCO,
         ordered_sections=[
             r"ip access-list standard \S+$",

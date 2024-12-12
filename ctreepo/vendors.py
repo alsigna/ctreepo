@@ -1,6 +1,6 @@
 import re
 
-from .abstract import ConfTree
+from .abstract import CTree
 
 __all__ = (
     "AristaCT",
@@ -9,7 +9,7 @@ __all__ = (
 )
 
 
-class AristaCT(ConfTree):
+class AristaCT(CTree):
     spaces = "   "
     undo = "no"
     section_exit = "exit"
@@ -28,7 +28,7 @@ class AristaCT(ConfTree):
     ]
 
 
-class CiscoCT(ConfTree):
+class CiscoCT(CTree):
     spaces = " "
     undo = "no"
     section_exit = "exit"
@@ -96,7 +96,7 @@ class CiscoCT(ConfTree):
         self.rebuild()
 
 
-class HuaweiCT(ConfTree):
+class HuaweiCT(CTree):
     spaces = " "
     undo = "undo"
     section_exit = "quit"

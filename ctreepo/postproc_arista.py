@@ -1,5 +1,5 @@
-from .abstract import ConfTree
-from .postproc import ConfTreePostProc, register_rule
+from .abstract import CTree
+from .postproc import CTreePostProc, register_rule
 from .vendors import AristaCT
 
 __all__ = (
@@ -12,9 +12,9 @@ __all__ = (
 
 
 @register_rule
-class AristaPostProcAAA(ConfTreePostProc):
+class AristaPostProcAAA(CTreePostProc):
     @classmethod
-    def process(cls, ct: ConfTree) -> None:
+    def process(cls, ct: CTree) -> None:
         if not isinstance(ct, AristaCT):
             return
 
@@ -35,11 +35,11 @@ class AristaPostProcAAA(ConfTreePostProc):
 
 
 @register_rule
-class AristaPostProcBGP(ConfTreePostProc):
+class AristaPostProcBGP(CTreePostProc):
     @classmethod
-    def process(cls, ct: ConfTree) -> None:
-        def _delete_nodes(ct: ConfTree) -> None:
-            nodes_to_delete: list[ConfTree] = []
+    def process(cls, ct: CTree) -> None:
+        def _delete_nodes(ct: CTree) -> None:
+            nodes_to_delete: list[CTree] = []
             for node in ct.children.values():
                 if len(node.children) != 0:
                     _delete_nodes(node)
@@ -76,13 +76,13 @@ class AristaPostProcBGP(ConfTreePostProc):
 
 
 @register_rule
-class AristaPostProcPrefixList(ConfTreePostProc):
+class AristaPostProcPrefixList(CTreePostProc):
     @classmethod
-    def process(cls, ct: ConfTree) -> None:
+    def process(cls, ct: CTree) -> None:
         if not isinstance(ct, AristaCT):
             return
         pl_statements: dict[str, list[str]] = {}
-        to_change: list[ConfTree] = []
+        to_change: list[CTree] = []
         # в pl_statements записываем pl и seq, которые будем настраивать
         for child in ct.children.values():
             if child.line.startswith("ip prefix-list "):
@@ -103,7 +103,7 @@ class AristaPostProcPrefixList(ConfTreePostProc):
                     child.line = f"no ip prefix-list {pl_name} seq {pl_indx}"
 
         # те записи, которые меняем, нужно удалить перед тем, как настраивать
-        clear_before_configure: dict[str, ConfTree] = {}
+        clear_before_configure: dict[str, CTree] = {}
         for node in to_change:
             _, _, _, pl_name, _, pl_indx, *_ = node.line.split()
             new_node = node.__class__(
@@ -119,9 +119,9 @@ class AristaPostProcPrefixList(ConfTreePostProc):
 
 
 @register_rule
-class AristaPostProcTacacsKey(ConfTreePostProc):
+class AristaPostProcTacacsKey(CTreePostProc):
     @classmethod
-    def process(cls, ct: ConfTree) -> None:
+    def process(cls, ct: CTree) -> None:
         if not isinstance(ct, AristaCT):
             return
 
@@ -141,9 +141,9 @@ class AristaPostProcTacacsKey(ConfTreePostProc):
 
 
 @register_rule
-class AristaPostProcUsers(ConfTreePostProc):
+class AristaPostProcUsers(CTreePostProc):
     @classmethod
-    def process(cls, ct: ConfTree) -> None:
+    def process(cls, ct: CTree) -> None:
         if not isinstance(ct, AristaCT):
             return
 

@@ -1,5 +1,5 @@
-from .abstract import ConfTree
-from .postproc import ConfTreePostProc, register_rule
+from .abstract import CTree
+from .postproc import CTreePostProc, register_rule
 from .vendors import HuaweiCT
 
 __all__ = (
@@ -13,9 +13,9 @@ __all__ = (
 
 
 @register_rule
-class HuaweiPostProcAAA(ConfTreePostProc):
+class HuaweiPostProcAAA(CTreePostProc):
     @classmethod
-    def process(cls, ct: ConfTree) -> None:
+    def process(cls, ct: CTree) -> None:
         """Пост-обработка секции aaa.
 
         - Для пустых секций добавляем заглушку, что бы корректно генерировался патч
@@ -96,9 +96,9 @@ class HuaweiPostProcAAA(ConfTreePostProc):
 
 
 @register_rule
-class HuaweiPostProcBGP(ConfTreePostProc):
+class HuaweiPostProcBGP(CTreePostProc):
     @classmethod
-    def process(cls, ct: ConfTree) -> None:
+    def process(cls, ct: CTree) -> None:
         if not isinstance(ct, HuaweiCT):
             return
         filtered_bgp = [node for node in ct.children.values() if node.line.startswith("bgp")]
@@ -113,9 +113,9 @@ class HuaweiPostProcBGP(ConfTreePostProc):
 
 
 @register_rule
-class HuaweiPostProcInterface(ConfTreePostProc):
+class HuaweiPostProcInterface(CTreePostProc):
     @classmethod
-    def process(cls, ct: ConfTree) -> None:
+    def process(cls, ct: CTree) -> None:
         if not isinstance(ct, HuaweiCT):
             return
 
@@ -138,13 +138,13 @@ class HuaweiPostProcInterface(ConfTreePostProc):
 
 
 @register_rule
-class HuaweiPostProcPrefixList(ConfTreePostProc):
+class HuaweiPostProcPrefixList(CTreePostProc):
     @classmethod
-    def process(cls, ct: ConfTree) -> None:
+    def process(cls, ct: CTree) -> None:
         if not isinstance(ct, HuaweiCT):
             return
         pl_statements: dict[str, list[str]] = {}
-        to_delete: list[ConfTree] = []
+        to_delete: list[CTree] = []
         for child in ct.children.values():
             if child.line.startswith("ip ip-prefix "):
                 _, _, pl_name, _, pl_indx, *_ = child.line.split()
@@ -164,9 +164,9 @@ class HuaweiPostProcPrefixList(ConfTreePostProc):
 
 
 @register_rule
-class HuaweiPostProcRoutePolicy(ConfTreePostProc):
+class HuaweiPostProcRoutePolicy(CTreePostProc):
     @classmethod
-    def process(cls, ct: ConfTree) -> None:
+    def process(cls, ct: CTree) -> None:
         if not isinstance(ct, HuaweiCT):
             return
         for child in ct.children.values():
@@ -177,9 +177,9 @@ class HuaweiPostProcRoutePolicy(ConfTreePostProc):
 
 
 @register_rule
-class HuaweiPostProcTacacs(ConfTreePostProc):
+class HuaweiPostProcTacacs(CTreePostProc):
     @classmethod
-    def process(cls, ct: ConfTree) -> None:
+    def process(cls, ct: CTree) -> None:
         if not isinstance(ct, HuaweiCT):
             return
         filtered_tacacs = [

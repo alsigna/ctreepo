@@ -1,4 +1,4 @@
-from conf_tree import ConfTreeEnv, Vendor
+from ctreepo import CTreeEnv, Vendor
 
 
 def get_configs() -> str:
@@ -7,7 +7,7 @@ def get_configs() -> str:
     return config
 
 
-def get_ct_environment() -> ConfTreeEnv:
+def get_ct_environment() -> CTreeEnv:
     tagging_rules: list[dict[str, str | list[str]]] = [
         {"regex": r"^router bgp .* neighbor (\S+) route-map (\S+) (?:in|out)", "tags": ["rm-attach"]},
         {"regex": r"^router bgp \d+$", "tags": ["bgp"]},
@@ -15,7 +15,7 @@ def get_ct_environment() -> ConfTreeEnv:
         {"regex": r"^ip community-list (?:standard|expanded) (\S+)", "tags": ["cl"]},
         {"regex": r"^ip prefix-list (\S+)", "tags": ["pl"]},
     ]
-    return ConfTreeEnv(
+    return CTreeEnv(
         vendor=Vendor.CISCO,
         tagging_rules=tagging_rules,
     )

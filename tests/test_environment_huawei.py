@@ -3,11 +3,11 @@ from typing import cast
 
 import pytest
 
-from conf_tree import ConfTreeEnv, HuaweiCT, Vendor
+from ctreepo import CTreeEnv, HuaweiCT, Vendor
 
 
 @pytest.fixture(scope="function")
-def env_root() -> tuple[ConfTreeEnv, HuaweiCT]:
+def env_root() -> tuple[CTreeEnv, HuaweiCT]:
     config_str = dedent(
         """
         !Software Version abcdef
@@ -160,7 +160,7 @@ def env_root() -> tuple[ConfTreeEnv, HuaweiCT]:
         {"regex": r"^grpc$", "tags": ["mgmt", "gnmi"]},
     ]
 
-    env = ConfTreeEnv(
+    env = CTreeEnv(
         vendor=Vendor.HUAWEI,
         tagging_rules=tagging_rules,
     )
@@ -169,7 +169,7 @@ def env_root() -> tuple[ConfTreeEnv, HuaweiCT]:
     return env, root
 
 
-def test_config(env_root: tuple[ConfTreeEnv, HuaweiCT]) -> None:
+def test_config(env_root: tuple[CTreeEnv, HuaweiCT]) -> None:
     config = dedent(
         """
         telnet server disable
@@ -306,7 +306,7 @@ def test_config(env_root: tuple[ConfTreeEnv, HuaweiCT]) -> None:
     assert env_root[1].config == config
 
 
-def test_patch(env_root: tuple[ConfTreeEnv, HuaweiCT]) -> None:
+def test_patch(env_root: tuple[CTreeEnv, HuaweiCT]) -> None:
     patch = dedent(
         """
         telnet server disable
@@ -442,7 +442,7 @@ def test_patch(env_root: tuple[ConfTreeEnv, HuaweiCT]) -> None:
     assert env_root[1].patch == patch
 
 
-def test_to_dict(env_root: tuple[ConfTreeEnv, HuaweiCT]) -> None:
+def test_to_dict(env_root: tuple[CTreeEnv, HuaweiCT]) -> None:
     dst = {
         "line": "",
         "tags": [],
@@ -908,7 +908,7 @@ def test_to_dict(env_root: tuple[ConfTreeEnv, HuaweiCT]) -> None:
     assert dst == serialized
 
 
-def test_from_dict(env_root: tuple[ConfTreeEnv, HuaweiCT]) -> None:
+def test_from_dict(env_root: tuple[CTreeEnv, HuaweiCT]) -> None:
     src = {
         "line": "",
         "tags": [],
@@ -1379,7 +1379,7 @@ def test_from_dict(env_root: tuple[ConfTreeEnv, HuaweiCT]) -> None:
     assert ct != deserialized
 
 
-def test_masked_config(env_root: tuple[ConfTreeEnv, HuaweiCT]) -> None:
+def test_masked_config(env_root: tuple[CTreeEnv, HuaweiCT]) -> None:
     masked_config = dedent(
         f"""
         telnet server disable
@@ -1517,7 +1517,7 @@ cert.key.pem auth-code cipher {HuaweiCT.masking_string}
     assert env_root[1].masked_config == masked_config
 
 
-def test_masked_patch(env_root: tuple[ConfTreeEnv, HuaweiCT]) -> None:
+def test_masked_patch(env_root: tuple[CTreeEnv, HuaweiCT]) -> None:
     masked_patch = dedent(
         f"""
         telnet server disable
@@ -1654,7 +1654,7 @@ cert.key.pem auth-code cipher {HuaweiCT.masking_string}
     assert env_root[1].masked_patch == masked_patch
 
 
-def test_searcher(env_root: tuple[ConfTreeEnv, HuaweiCT]) -> None:
+def test_searcher(env_root: tuple[CTreeEnv, HuaweiCT]) -> None:
     qos_config = dedent(
         """
         diffserv domain default
@@ -1743,13 +1743,13 @@ def test_searcher(env_root: tuple[ConfTreeEnv, HuaweiCT]) -> None:
     assert interface_and_qos.config == interface_and_qos_config
 
 
-def test_tagging_rules(env_root: tuple[ConfTreeEnv, HuaweiCT]) -> None:
+def test_tagging_rules(env_root: tuple[CTreeEnv, HuaweiCT]) -> None:
     env_dict, _ = env_root
-    env_file = ConfTreeEnv(vendor=Vendor.HUAWEI, tagging_rules="./tests/test_environment_huawei.yaml")
+    env_file = CTreeEnv(vendor=Vendor.HUAWEI, tagging_rules="./tests/test_environment_huawei.yaml")
     assert env_dict._parser.tagging_rules == env_file._parser.tagging_rules
 
 
-def test_diff(env_root: tuple[ConfTreeEnv, HuaweiCT]) -> None:
+def test_diff(env_root: tuple[CTreeEnv, HuaweiCT]) -> None:
     target_str = dedent(
         """
         !Software Version abcdef
@@ -1931,7 +1931,7 @@ def test_diff(env_root: tuple[ConfTreeEnv, HuaweiCT]) -> None:
     target = env.parse(target_str)
     diff = env.diff(a=current, b=target)
 
-    env_no_diff = ConfTreeEnv(
+    env_no_diff = CTreeEnv(
         vendor=Vendor.HUAWEI,
         no_diff_sections=[r"^xpl \S+ \S+$"],
     )

@@ -2,7 +2,7 @@ from textwrap import dedent
 
 import pytest
 
-from conf_tree import ConfTree, ConfTreeParser, ConfTreeSearcher, ConfTreeSerializer, TaggingRulesDict, Vendor
+from ctreepo import CTree, CTreeParser, CTreeSearcher, CTreeSerializer, TaggingRulesDict, Vendor
 
 config = dedent(
     """
@@ -38,7 +38,7 @@ config = dedent(
 
 
 @pytest.fixture(scope="session")
-def get_config_tree() -> ConfTree:
+def get_config_tree() -> CTree:
     tagging_rules_dict: dict[Vendor, list[dict[str, str | list[str]]]] = {
         Vendor.HUAWEI: [
             {"regex": r"^ip vpn-instance (\S+)$", "tags": ["vpn"]},
@@ -50,12 +50,12 @@ def get_config_tree() -> ConfTree:
         ],
     }
     loader = TaggingRulesDict(tagging_rules_dict)
-    parser = ConfTreeParser(vendor=Vendor.HUAWEI, tagging_rules=loader)
+    parser = CTreeParser(vendor=Vendor.HUAWEI, tagging_rules=loader)
     root = parser.parse(config)
     return root
 
 
-def test_string(get_config_tree: ConfTree) -> None:
+def test_string(get_config_tree: CTree) -> None:
     filtered_config = dedent(
         """
         interface gi0/0/0
@@ -95,12 +95,12 @@ def test_string(get_config_tree: ConfTree) -> None:
         },
     }
     root = get_config_tree
-    filtered_root = ConfTreeSearcher.search(root, string="ip address 1.1.1.1 255.255.255.252")
+    filtered_root = CTreeSearcher.search(root, string="ip address 1.1.1.1 255.255.255.252")
     assert filtered_root.config == filtered_config
-    assert ConfTreeSerializer.to_dict(filtered_root) == filtered_dict
+    assert CTreeSerializer.to_dict(filtered_root) == filtered_dict
 
 
-def test_regex(get_config_tree: ConfTree) -> None:
+def test_regex(get_config_tree: CTree) -> None:
     filtered_config = dedent(
         """
         sflow collector 1 ip 100.64.0.1 vpn-instance MGMT
@@ -189,12 +189,12 @@ def test_regex(get_config_tree: ConfTree) -> None:
         },
     }
     root = get_config_tree
-    filtered_root = ConfTreeSearcher.search(root, string=r"(?:\d+\.){3}\d+")
+    filtered_root = CTreeSearcher.search(root, string=r"(?:\d+\.){3}\d+")
     assert filtered_root.config == filtered_config
-    assert ConfTreeSerializer.to_dict(filtered_root) == filtered_dict
+    assert CTreeSerializer.to_dict(filtered_root) == filtered_dict
 
 
-def test_tag(get_config_tree: ConfTree) -> None:
+def test_tag(get_config_tree: CTree) -> None:
     filtered_config = dedent(
         """
         ip vpn-instance MGMT
@@ -247,12 +247,12 @@ def test_tag(get_config_tree: ConfTree) -> None:
         },
     }
     root = get_config_tree
-    filtered_root = ConfTreeSearcher.search(root, include_tags=["vpn"])
+    filtered_root = CTreeSearcher.search(root, include_tags=["vpn"])
     assert filtered_root.config == filtered_config
-    assert ConfTreeSerializer.to_dict(filtered_root) == filtered_dict
+    assert CTreeSerializer.to_dict(filtered_root) == filtered_dict
 
 
-def test_tags_or(get_config_tree: ConfTree) -> None:
+def test_tags_or(get_config_tree: CTree) -> None:
     filtered_config = dedent(
         """
         ip vpn-instance MGMT
@@ -324,12 +324,12 @@ def test_tags_or(get_config_tree: ConfTree) -> None:
         },
     }
     root = get_config_tree
-    filtered_root = ConfTreeSearcher.search(root, include_tags=["vpn", "LAN", "MGMT"], include_mode="or")
+    filtered_root = CTreeSearcher.search(root, include_tags=["vpn", "LAN", "MGMT"], include_mode="or")
     assert filtered_root.config == filtered_config
-    assert ConfTreeSerializer.to_dict(filtered_root) == filtered_dict
+    assert CTreeSerializer.to_dict(filtered_root) == filtered_dict
 
 
-def test_tags_and(get_config_tree: ConfTree) -> None:
+def test_tags_and(get_config_tree: CTree) -> None:
     filtered_config = dedent(
         """
         ip vpn-instance LAN
@@ -362,12 +362,12 @@ def test_tags_and(get_config_tree: ConfTree) -> None:
         },
     }
     root = get_config_tree
-    filtered_root = ConfTreeSearcher.search(root, include_tags=["rd", "LAN"], include_mode="and")
+    filtered_root = CTreeSearcher.search(root, include_tags=["rd", "LAN"], include_mode="and")
     assert filtered_root.config == filtered_config
-    assert ConfTreeSerializer.to_dict(filtered_root) == filtered_dict
+    assert CTreeSerializer.to_dict(filtered_root) == filtered_dict
 
 
-def test_tags_exclude(get_config_tree: ConfTree) -> None:
+def test_tags_exclude(get_config_tree: CTree) -> None:
     filtered_config = dedent(
         """
         ip vpn-instance MGMT
@@ -377,11 +377,11 @@ def test_tags_exclude(get_config_tree: ConfTree) -> None:
     ).strip()
 
     root = get_config_tree
-    filtered_root = ConfTreeSearcher.search(root, include_tags=["vpn"], exclude_tags=["LAN"])
+    filtered_root = CTreeSearcher.search(root, include_tags=["vpn"], exclude_tags=["LAN"])
     assert filtered_root.config == filtered_config
 
 
-def test_string_tags_and(get_config_tree: ConfTree) -> None:
+def test_string_tags_and(get_config_tree: CTree) -> None:
     filtered_config = dedent(
         """
         interface gi0/0/0
@@ -407,14 +407,12 @@ def test_string_tags_and(get_config_tree: ConfTree) -> None:
         },
     }
     root = get_config_tree
-    filtered_root = ConfTreeSearcher.search(
-        root, string="ip address", include_tags=["gi0/0/0", "ip"], include_mode="and"
-    )
+    filtered_root = CTreeSearcher.search(root, string="ip address", include_tags=["gi0/0/0", "ip"], include_mode="and")
     assert filtered_root.config == filtered_config
-    assert ConfTreeSerializer.to_dict(filtered_root) == filtered_dict
+    assert CTreeSerializer.to_dict(filtered_root) == filtered_dict
 
 
-def test_string_tags_or(get_config_tree: ConfTree) -> None:
+def test_string_tags_or(get_config_tree: CTree) -> None:
     filtered_config = dedent(
         """
         interface gi0/0/0
@@ -454,38 +452,38 @@ def test_string_tags_or(get_config_tree: ConfTree) -> None:
         },
     }
     root = get_config_tree
-    filtered_root = ConfTreeSearcher.search(
+    filtered_root = CTreeSearcher.search(
         root, string=r"(?:\d+\.){3}\d+", include_tags=["gi0/0/0", "gi0/0/1"], include_mode="or"
     )
     assert filtered_root.config == filtered_config
-    assert ConfTreeSerializer.to_dict(filtered_root) == filtered_dict
+    assert CTreeSerializer.to_dict(filtered_root) == filtered_dict
 
 
-def test_null_tags(get_config_tree: ConfTree) -> None:
+def test_null_tags(get_config_tree: CTree) -> None:
     filtered_config = ""
     filtered_dict = {"line": "", "tags": [], "children": {}}
     root = get_config_tree
-    filtered_root = ConfTreeSearcher.search(root, include_tags=["gi0/0/0", "gi0/0/1"], include_mode="and")
+    filtered_root = CTreeSearcher.search(root, include_tags=["gi0/0/0", "gi0/0/1"], include_mode="and")
     assert filtered_root.config == filtered_config
-    assert ConfTreeSerializer.to_dict(filtered_root) == filtered_dict
+    assert CTreeSerializer.to_dict(filtered_root) == filtered_dict
 
 
-def test_null_string(get_config_tree: ConfTree) -> None:
+def test_null_string(get_config_tree: CTree) -> None:
     filtered_config = ""
     filtered_dict = {"line": "", "tags": [], "children": {}}
     root = get_config_tree
-    filtered_root = ConfTreeSearcher.search(root, string="unknown")
+    filtered_root = CTreeSearcher.search(root, string="unknown")
     assert filtered_root.config == filtered_config
-    assert ConfTreeSerializer.to_dict(filtered_root) == filtered_dict
+    assert CTreeSerializer.to_dict(filtered_root) == filtered_dict
 
 
-def test_null_empty(get_config_tree: ConfTree) -> None:
+def test_null_empty(get_config_tree: CTree) -> None:
     root = get_config_tree
-    filtered_root = ConfTreeSearcher.search(root)
+    filtered_root = CTreeSearcher.search(root)
     assert filtered_root == root.__class__()
 
 
-def test_children(get_config_tree: ConfTree) -> None:
+def test_children(get_config_tree: CTree) -> None:
     without_children_config = dedent(
         """
         ip vpn-instance MGMT
@@ -511,8 +509,8 @@ def test_children(get_config_tree: ConfTree) -> None:
         """
     ).strip()
     root = get_config_tree
-    without_children = ConfTreeSearcher.search(ct=root, string="ipv4-family", include_children=False)
-    with_children = ConfTreeSearcher.search(ct=root, string="ipv4-family", include_children=True)
+    without_children = CTreeSearcher.search(ct=root, string="ipv4-family", include_children=False)
+    with_children = CTreeSearcher.search(ct=root, string="ipv4-family", include_children=True)
     assert without_children.config == without_children_config
     assert with_children.config == with_children_config
 
@@ -581,12 +579,12 @@ def test_exclude_children_by_tag() -> None:
         {"regex": r"^router bgp .* neighbor (\S+) route-map (\S+) (?:in|out)", "tags": ["rm-attach"]},
         {"regex": r"^router bgp \d+$", "tags": ["bgp"]},
     ]
-    parser = ConfTreeParser(Vendor.CISCO, TaggingRulesDict({Vendor.CISCO: tagging_rules}))
+    parser = CTreeParser(Vendor.CISCO, TaggingRulesDict({Vendor.CISCO: tagging_rules}))
     root = parser.parse(config_str)
 
     # c "neighbor CSC route-map rm_CSC_PE_in in", встречаем bgp секцию и помещаем
     # этот узел в результат со всеми его потомками, без проверки на их теги
-    bgp_all = ConfTreeSearcher.search(
+    bgp_all = CTreeSearcher.search(
         root,
         include_tags=["bgp"],
         include_children=True,
@@ -595,19 +593,19 @@ def test_exclude_children_by_tag() -> None:
 
     # без "neighbor CSC route-map rm_CSC_PE_in in", а тут уже проверяем теги каждого
     # потомка, поэтому строка не попадает в результат
-    bgp_no_rm = ConfTreeSearcher.search(
+    bgp_no_rm = CTreeSearcher.search(
         root,
         include_tags=["bgp"],
     )
     assert bgp_no_rm.config == bgp_no_rm_str
 
-    bgp_rm_attach = ConfTreeSearcher.search(
+    bgp_rm_attach = CTreeSearcher.search(
         root,
         include_tags=["rm-attach"],
     )
     assert bgp_rm_attach.config == bgp_rm_attach_str
 
-    bgp_no_rm_exclude = ConfTreeSearcher.search(
+    bgp_no_rm_exclude = CTreeSearcher.search(
         root,
         exclude_tags=["rm-attach"],
     )

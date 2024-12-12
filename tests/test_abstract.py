@@ -6,11 +6,11 @@ from textwrap import dedent
 
 import pytest
 
-from conf_tree import ConfTree, ConfTreeParser, HuaweiCT, TaggingRulesFile, Vendor
+from ctreepo import CTree, CTreeParser, HuaweiCT, TaggingRulesFile, Vendor
 
 
 @pytest.fixture(scope="function")
-def huawei_manual_config() -> dict[str, ConfTree]:
+def huawei_manual_config() -> dict[str, CTree]:
     # sflow collector 1 ip 100.64.0.1 vpn-instance MGMT
     # #
     # storm suppression statistics enable
@@ -66,7 +66,7 @@ def huawei_manual_config() -> dict[str, ConfTree]:
     return locals()
 
 
-def test_basic_creation(huawei_manual_config: dict[str, ConfTree]) -> None:
+def test_basic_creation(huawei_manual_config: dict[str, CTree]) -> None:
     root = huawei_manual_config
     assert str(root["root"]) == "root"
     assert root["sflow"].parent == root["root"]
@@ -78,7 +78,7 @@ def test_basic_creation(huawei_manual_config: dict[str, ConfTree]) -> None:
     assert root["lan"].parent == root["mgmt"].parent
 
 
-def test_eq(huawei_manual_config: dict[str, ConfTree]) -> None:
+def test_eq(huawei_manual_config: dict[str, CTree]) -> None:
     # interface gi0/0/0
     #  description test
     #  ip address 1.1.1.1 255.255.255.252
@@ -105,12 +105,12 @@ def test_eq(huawei_manual_config: dict[str, ConfTree]) -> None:
     assert root["intf_000"] != other_intf_000
 
 
-def test_repr(huawei_manual_config: dict[str, ConfTree]) -> None:
+def test_repr(huawei_manual_config: dict[str, CTree]) -> None:
     root = huawei_manual_config
     assert repr(root["root"]) == f"({id(root['root'])}) 'root'"
 
 
-def test_config(huawei_manual_config: dict[str, ConfTree]) -> None:
+def test_config(huawei_manual_config: dict[str, CTree]) -> None:
     config = dedent(
         """
         sflow collector 1 ip 100.64.0.1 vpn-instance MGMT
@@ -148,7 +148,7 @@ def test_config(huawei_manual_config: dict[str, ConfTree]) -> None:
     assert root.config == config
 
 
-def test_masked_config(huawei_manual_config: dict[str, ConfTree]) -> None:
+def test_masked_config(huawei_manual_config: dict[str, CTree]) -> None:
     masked_config = dedent(
         f"""
         sflow collector 1 ip 100.64.0.1 vpn-instance MGMT
@@ -186,7 +186,7 @@ def test_masked_config(huawei_manual_config: dict[str, ConfTree]) -> None:
     assert root.masked_config == masked_config
 
 
-def test_patch(huawei_manual_config: dict[str, ConfTree]) -> None:
+def test_patch(huawei_manual_config: dict[str, CTree]) -> None:
     patch = dedent(
         """
         sflow collector 1 ip 100.64.0.1 vpn-instance MGMT
@@ -223,7 +223,7 @@ def test_patch(huawei_manual_config: dict[str, ConfTree]) -> None:
     assert root.patch == patch
 
 
-def test_masked_patch(huawei_manual_config: dict[str, ConfTree]) -> None:
+def test_masked_patch(huawei_manual_config: dict[str, CTree]) -> None:
     masked_patch = dedent(
         f"""
         sflow collector 1 ip 100.64.0.1 vpn-instance MGMT
@@ -260,8 +260,8 @@ def test_masked_patch(huawei_manual_config: dict[str, ConfTree]) -> None:
     assert root.masked_patch == masked_patch
 
 
-def test_copy(huawei_manual_config: dict[str, ConfTree]) -> None:
-    def get_nodes_list(root: ConfTree) -> list[ConfTree]:
+def test_copy(huawei_manual_config: dict[str, CTree]) -> None:
+    def get_nodes_list(root: CTree) -> list[CTree]:
         stack = deque(root.children.values())
         nodes = []
         while len(stack) > 0:
@@ -357,7 +357,7 @@ def test_merge() -> None:
     assert root1.config == config
 
 
-def test_delete(huawei_manual_config: dict[str, ConfTree]) -> None:
+def test_delete(huawei_manual_config: dict[str, CTree]) -> None:
     config = dedent(
         """
         sflow collector 1 ip 100.64.0.1 vpn-instance MGMT
@@ -391,9 +391,9 @@ def test_delete(huawei_manual_config: dict[str, ConfTree]) -> None:
     assert root.config == config
 
 
-def test_rebuild(huawei_manual_config: dict[str, ConfTree]) -> None:
+def test_rebuild(huawei_manual_config: dict[str, CTree]) -> None:
     mgmt = huawei_manual_config["mgmt"]
-    if not isinstance(mgmt, ConfTree) or not isinstance(mgmt.parent, ConfTree):
+    if not isinstance(mgmt, CTree) or not isinstance(mgmt.parent, CTree):
         raise AssertionError
     mgmt.line = "ip vpn-instance MGMT_NEW_NAME"
     mgmt.parent.rebuild()
@@ -401,7 +401,7 @@ def test_rebuild(huawei_manual_config: dict[str, ConfTree]) -> None:
 
     root = huawei_manual_config["root"]
     rd = root.children["ip vpn-instance LAN"].children["ipv4-family"].children["route-distinguisher 192.168.0.1:123"]
-    if not isinstance(rd, ConfTree) or not isinstance(rd.parent, ConfTree):
+    if not isinstance(rd, CTree) or not isinstance(rd.parent, CTree):
         raise AssertionError
     rd.line = "route-distinguisher 1.2.3.4:567"
     assert rd.line not in rd.parent.children.keys()
@@ -409,7 +409,7 @@ def test_rebuild(huawei_manual_config: dict[str, ConfTree]) -> None:
     assert rd.line in rd.parent.children.keys()
 
 
-def test_mask_line(huawei_manual_config: dict[str, ConfTree]) -> None:
+def test_mask_line(huawei_manual_config: dict[str, CTree]) -> None:
     nodes = [
         huawei_manual_config["ntp"],
         huawei_manual_config["radius"].children.get("radius-server shared-key cipher secret_password"),
@@ -423,13 +423,13 @@ def test_mask_line(huawei_manual_config: dict[str, ConfTree]) -> None:
         f"radius-server shared-key cipher {HuaweiCT.masking_string}",
     ]
     for node, raw, masked in zip(nodes, raw_lines, masked_lines):
-        if not isinstance(node, ConfTree):
+        if not isinstance(node, CTree):
             raise AssertionError
         assert node.line == raw
         assert node.masked_line == masked
 
 
-def test_nested_config(huawei_manual_config: dict[str, ConfTree]) -> None:
+def test_nested_config(huawei_manual_config: dict[str, CTree]) -> None:
     config = dedent(
         """
         ip vpn-instance LAN
@@ -441,7 +441,7 @@ def test_nested_config(huawei_manual_config: dict[str, ConfTree]) -> None:
     assert rd.config == config
 
 
-def test_nested_patch(huawei_manual_config: dict[str, ConfTree]) -> None:
+def test_nested_patch(huawei_manual_config: dict[str, CTree]) -> None:
     patch = dedent(
         """
         ip vpn-instance LAN
@@ -456,7 +456,7 @@ def test_nested_patch(huawei_manual_config: dict[str, ConfTree]) -> None:
     assert rd.patch == patch
 
 
-def test_exists_in(huawei_manual_config: dict[str, ConfTree]) -> None:
+def test_exists_in(huawei_manual_config: dict[str, CTree]) -> None:
     uut = huawei_manual_config["radius"]
     root = HuaweiCT()
     radius = HuaweiCT("radius-server template RADIUS_TEMPLATE", root)
@@ -477,7 +477,7 @@ def test_exists_in(huawei_manual_config: dict[str, ConfTree]) -> None:
     assert key_3.exists_in(uut, masked=True) == ""
 
 
-def test_formal_config(huawei_manual_config: dict[str, ConfTree]) -> None:
+def test_formal_config(huawei_manual_config: dict[str, CTree]) -> None:
     formal_config = dedent(
         """
         sflow collector 1 ip 100.64.0.1 vpn-instance MGMT
@@ -691,7 +691,7 @@ def test_reorder() -> None:
         """
     ).strip()
 
-    parser = ConfTreeParser(Vendor.HUAWEI, TaggingRulesFile(Path(__file__).with_suffix(".yaml")))
+    parser = CTreeParser(Vendor.HUAWEI, TaggingRulesFile(Path(__file__).with_suffix(".yaml")))
 
     root = parser.parse(config)
     assert root.config == original
@@ -769,7 +769,7 @@ def test_subtract() -> None:
         """
     ).strip()
     config2_config1 = ""
-    parser = ConfTreeParser(vendor=Vendor.HUAWEI)
+    parser = CTreeParser(vendor=Vendor.HUAWEI)
     root1 = parser.parse(config1)
     root2 = parser.parse(config2)
     diff = root1.subtract(root2)
@@ -836,7 +836,7 @@ def test_apply() -> None:
         #
         """
     ).strip()
-    parser = ConfTreeParser(vendor=Vendor.HUAWEI)
+    parser = CTreeParser(vendor=Vendor.HUAWEI)
     current = parser.parse(current_config)
     diff = parser.parse(diff_config)
     target = current.apply(diff)

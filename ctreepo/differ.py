@@ -1,15 +1,15 @@
 import re
 from typing import Type
 
-from .abstract import ConfTree
-from .postproc import _REGISTRY, ConfTreePostProc
+from .abstract import CTree
+from .postproc import _REGISTRY, CTreePostProc
 
-__all__ = ("ConfTreeDiffer",)
+__all__ = ("CTreeDiffer",)
 
 
-class ConfTreeDiffer:
+class CTreeDiffer:
     @classmethod
-    def _check_ordered(cls, a: ConfTree, ordered_sections: list[str] | None = None) -> bool:
+    def _check_ordered(cls, a: CTree, ordered_sections: list[str] | None = None) -> bool:
         if ordered_sections is not None:
             for section in ordered_sections:
                 formal_line = " / ".join(a._formal_path)
@@ -18,7 +18,7 @@ class ConfTreeDiffer:
         return False
 
     @classmethod
-    def _check_no_diff(cls, a: ConfTree, no_diff_sections: list[str] | None = None) -> bool:
+    def _check_no_diff(cls, a: CTree, no_diff_sections: list[str] | None = None) -> bool:
         if no_diff_sections is not None:
             for section in no_diff_sections:
                 formal_line = " / ".join(a._formal_path)
@@ -29,15 +29,15 @@ class ConfTreeDiffer:
     @classmethod
     def _diff_list(
         cls,
-        a: ConfTree,  # текущая конфигурация
-        b: ConfTree,  # целевая
+        a: CTree,  # текущая конфигурация
+        b: CTree,  # целевая
         *,
-        existed_diff: ConfTree | None = None,
+        existed_diff: CTree | None = None,
         ordered_sections: list[str] | None = None,
         no_diff_sections: list[str] | None = None,
         masked: bool = False,
         negative: bool = False,  # если True, то вычисляем, что нужно удалить, т.е. чего нет в целевой конфигурации
-    ) -> list[ConfTree]:
+    ) -> list[CTree]:
         result = []
         _ordered = cls._check_ordered(a, ordered_sections)
         indx = 0
@@ -104,15 +104,15 @@ class ConfTreeDiffer:
     @classmethod
     def diff(
         cls,
-        a: ConfTree,
-        b: ConfTree,
+        a: CTree,
+        b: CTree,
         *,
         masked: bool = False,
         ordered_sections: list[str] | None = None,
         no_diff_sections: list[str] | None = None,
         reorder_root: bool = True,
-        post_proc_rules: list[Type[ConfTreePostProc]] | None = None,
-    ) -> ConfTree:
+        post_proc_rules: list[Type[CTreePostProc]] | None = None,
+    ) -> CTree:
         # TODO тут подумать, что бы сразу в нужный parent крепить узел, а не делать merge списка потом
 
         if a.__class__ != b.__class__:

@@ -1,15 +1,15 @@
-from .abstract import ConfTree
-from .postproc import ConfTreePostProc, register_rule
+from .abstract import CTree
+from .postproc import CTreePostProc, register_rule
 from .vendors import CiscoCT
 
 __all__ = ("CiscoPostProcBGP",)
 
 
 @register_rule
-class CiscoPostProcBGP(ConfTreePostProc):
+class CiscoPostProcBGP(CTreePostProc):
     @classmethod
-    def _delete_nodes(cls, ct: ConfTree, lines_to_delete: set) -> None:
-        nodes_to_delete: list[ConfTree] = []
+    def _delete_nodes(cls, ct: CTree, lines_to_delete: set) -> None:
+        nodes_to_delete: list[CTree] = []
         for node in ct.children.values():
             if len(node.children) != 0:
                 cls._delete_nodes(node, lines_to_delete)
@@ -22,7 +22,7 @@ class CiscoPostProcBGP(ConfTreePostProc):
             node.delete()
 
     @classmethod
-    def process(cls, ct: ConfTree) -> None:
+    def process(cls, ct: CTree) -> None:
         """Пост-обработка секции bgp для Cisco.
 
         - если есть команда "no neighbor <GROUP-NAME> peer-group", значит группы в целевой
@@ -31,7 +31,7 @@ class CiscoPostProcBGP(ConfTreePostProc):
             остальное само вычистит
 
         Args:
-            ct (ConfTree): дерево, для модификации
+            ct (CTree): дерево, для модификации
         """
         # на всякий случай проверим, что это дерево для cisco
         if not isinstance(ct, CiscoCT):

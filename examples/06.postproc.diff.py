@@ -1,14 +1,14 @@
 import re
 
-from conf_tree import ConfTree, ConfTreeEnv, ConfTreePostProc, Vendor, register_rule
+from ctreepo import CTree, CTreeEnv, CTreePostProc, Vendor, register_rule
 
 
 @register_rule
-class CiscoPostProcBGP(ConfTreePostProc):
+class CiscoPostProcBGP(CTreePostProc):
     @classmethod
-    def _delete_nodes(cls, ct: ConfTree, regex: str) -> None:
+    def _delete_nodes(cls, ct: CTree, regex: str) -> None:
         """Рекурсивное удаление узлов по переданному паттерну."""
-        nodes_to_delete: list[ConfTree] = []
+        nodes_to_delete: list[CTree] = []
         for node in ct.children.values():
             if len(node.children) != 0:
                 cls._delete_nodes(node, regex)
@@ -23,7 +23,7 @@ class CiscoPostProcBGP(ConfTreePostProc):
             node.delete()
 
     @classmethod
-    def process(cls, ct: ConfTree) -> None:
+    def process(cls, ct: CTree) -> None:
         """Пост-обработка секции bgp для Cisco.
 
         - если есть команда "no neighbor <GROUP-NAME> peer-group", значит группы в целевой
@@ -34,7 +34,7 @@ class CiscoPostProcBGP(ConfTreePostProc):
         !группы, определенные в af не обрабатываем, так как это пример использования
 
         Args:
-            ct (ConfTree): дерево, для модификации
+            ct (CTree): дерево, для модификации
         """
         # найдем секцию bgp, если она есть
         bgp_nodes = [node for node in ct.children.values() if node.line.startswith("router bgp ")]
@@ -89,16 +89,16 @@ def get_configs() -> tuple[str, str]:
     return existed, target
 
 
-def get_ct_environment_naive() -> ConfTreeEnv:
-    return ConfTreeEnv(vendor=Vendor.CISCO, post_proc_rules=[])
+def get_ct_environment_naive() -> CTreeEnv:
+    return CTreeEnv(vendor=Vendor.CISCO, post_proc_rules=[])
 
 
-def get_ct_environment_postproc() -> ConfTreeEnv:
+def get_ct_environment_postproc() -> CTreeEnv:
     # декоратор register_rule добавляет правило в общий список и можно тут не
     # переопределять его через аргумент post_proc_rules, но если необходимо
     # протестировать только какие-то определенные правила, тогда явно задаем их
     # или указываем пустой список, что бы получить наивную разницу без обработки
-    return ConfTreeEnv(vendor=Vendor.CISCO, post_proc_rules=[CiscoPostProcBGP])
+    return CTreeEnv(vendor=Vendor.CISCO, post_proc_rules=[CiscoPostProcBGP])
 
 
 if __name__ == "__main__":

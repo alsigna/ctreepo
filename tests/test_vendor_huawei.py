@@ -3,7 +3,7 @@ from typing import cast
 
 import pytest
 
-from conf_tree import ConfTree, ConfTreeParser, ConfTreeSearcher, ConfTreeSerializer, HuaweiCT, TaggingRulesDict, Vendor
+from ctreepo import CTree, CTreeParser, CTreeSearcher, CTreeSerializer, HuaweiCT, TaggingRulesDict, Vendor
 
 
 @pytest.fixture(scope="function")
@@ -163,11 +163,11 @@ def root() -> HuaweiCT:
         ],
     }
     loader = TaggingRulesDict(tagging_rules_dict)  # type: ignore[arg-type]
-    parser = ConfTreeParser(
+    parser = CTreeParser(
         vendor=Vendor.HUAWEI,
         tagging_rules=loader,
     )
-    root: ConfTree = parser.parse(config_str)
+    root: CTree = parser.parse(config_str)
     root = cast(HuaweiCT, root)
     return root
 
@@ -915,7 +915,7 @@ def test_to_dict(root: HuaweiCT) -> None:
             },
         },
     }
-    serialized = ConfTreeSerializer.to_dict(root)
+    serialized = CTreeSerializer.to_dict(root)
     assert dst == serialized
 
 
@@ -1386,11 +1386,11 @@ def test_from_dict(root: HuaweiCT) -> None:
             },
         },
     }
-    deserialized = ConfTreeSerializer.from_dict(Vendor.HUAWEI, src)
+    deserialized = CTreeSerializer.from_dict(Vendor.HUAWEI, src)
     assert root == deserialized
 
     src["children"]["telnet server disable"]["tags"].append("changed")  # type: ignore[index]
-    deserialized = ConfTreeSerializer.from_dict(Vendor.HUAWEI, src)
+    deserialized = CTreeSerializer.from_dict(Vendor.HUAWEI, src)
     assert root != deserialized
 
 
@@ -1752,9 +1752,9 @@ def test_searcher(root: HuaweiCT) -> None:
         """
     ).strip()
 
-    qos = ConfTreeSearcher.search(root, include_tags=["qos"])
-    interface_or_qos = ConfTreeSearcher.search(root, include_tags=["qos", "interface"])
-    interface_and_qos = ConfTreeSearcher.search(root, include_tags=["qos", "interface"], include_mode="and")
+    qos = CTreeSearcher.search(root, include_tags=["qos"])
+    interface_or_qos = CTreeSearcher.search(root, include_tags=["qos", "interface"])
+    interface_and_qos = CTreeSearcher.search(root, include_tags=["qos", "interface"], include_mode="and")
     assert qos.config == qos_config
     assert interface_or_qos.config == interface_or_qos_config
     assert interface_and_qos.config == interface_and_qos_config

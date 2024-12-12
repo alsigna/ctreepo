@@ -1,6 +1,6 @@
 from textwrap import dedent
 
-from conf_tree import ConfTreeDiffer, ConfTreeParser, Vendor
+from ctreepo import CTreeDiffer, CTreeParser, Vendor
 
 
 def test_arista_interface_post_processing() -> None:
@@ -80,12 +80,12 @@ def test_arista_interface_post_processing() -> None:
         no interface 25GE1/0/1.1234 mode l2
         """
     ).strip()
-    parser = ConfTreeParser(Vendor.ARISTA)
+    parser = CTreeParser(Vendor.ARISTA)
 
     current = parser.parse(current_config)
     target = parser.parse(target_config)
 
-    diff = ConfTreeDiffer.diff(current, target)
+    diff = CTreeDiffer.diff(current, target)
     assert diff.config == diff_config
     assert diff.patch == diff_patch
 
@@ -215,12 +215,12 @@ def test_arista_route_policy_post_processing() -> None:
         no route-map RM_NAME_2 permit 20
         """
     ).strip()
-    parser = ConfTreeParser(vendor=Vendor.ARISTA)
+    parser = CTreeParser(vendor=Vendor.ARISTA)
 
     current = parser.parse(current_config)
     target = parser.parse(target_config)
 
-    diff = ConfTreeDiffer.diff(current, target)
+    diff = CTreeDiffer.diff(current, target)
     assert diff.config == diff_config
     assert diff.patch == diff_patch
 
@@ -263,12 +263,12 @@ def test_arista_prefix_list_post_processing() -> None:
         no ip prefix-list TEST_PL_2 seq 10
         """
     ).strip()
-    parser = ConfTreeParser(vendor=Vendor.ARISTA)
+    parser = CTreeParser(vendor=Vendor.ARISTA)
 
     current = parser.parse(current_config)
     target = parser.parse(target_config)
 
-    diff = ConfTreeDiffer.diff(current, target)
+    diff = CTreeDiffer.diff(current, target)
 
     assert diff.config == diff_config
     assert diff.patch == diff_patch
@@ -306,13 +306,13 @@ def test_arista_user_post_processing_1() -> None:
         """
     ).strip()
     diff_config_processed = ""
-    parser = ConfTreeParser(Vendor.ARISTA)
+    parser = CTreeParser(Vendor.ARISTA)
     target = parser.parse(target_config)
     current = parser.parse(current_config)
-    diff_raw = ConfTreeDiffer.diff(current, target, post_proc_rules=[])
+    diff_raw = CTreeDiffer.diff(current, target, post_proc_rules=[])
     assert diff_raw.config == diff_config_raw
 
-    diff_processed = ConfTreeDiffer.diff(current, target)
+    diff_processed = CTreeDiffer.diff(current, target)
     assert diff_processed.config == diff_config_processed
 
 
@@ -348,13 +348,13 @@ def test_arista_user_post_processing_2() -> None:
         !
         """
     ).strip()
-    parser = ConfTreeParser(Vendor.ARISTA)
+    parser = CTreeParser(Vendor.ARISTA)
     target = parser.parse(target_config)
     current = parser.parse(current_config)
-    diff_raw = ConfTreeDiffer.diff(current, target, post_proc_rules=[])
+    diff_raw = CTreeDiffer.diff(current, target, post_proc_rules=[])
     assert diff_raw.config == diff_config_raw
 
-    diff_processed = ConfTreeDiffer.diff(current, target)
+    diff_processed = CTreeDiffer.diff(current, target)
     assert diff_processed.config == diff_config_processed
 
 
@@ -398,13 +398,13 @@ def test_arista_user_post_processing_3() -> None:
         !
         """
     ).strip()
-    parser = ConfTreeParser(Vendor.ARISTA)
+    parser = CTreeParser(Vendor.ARISTA)
     target = parser.parse(target_config)
     current = parser.parse(current_config)
-    diff_raw = ConfTreeDiffer.diff(current, target, post_proc_rules=[])
+    diff_raw = CTreeDiffer.diff(current, target, post_proc_rules=[])
     assert diff_raw.config == diff_config_raw
 
-    diff_processed = ConfTreeDiffer.diff(current, target)
+    diff_processed = CTreeDiffer.diff(current, target)
     assert diff_processed.config == diff_config_processed
 
 
@@ -450,13 +450,13 @@ def test_arista_user_post_processing_4() -> None:
         !
         """
     ).strip()
-    parser = ConfTreeParser(Vendor.ARISTA)
+    parser = CTreeParser(Vendor.ARISTA)
     target = parser.parse(target_config)
     current = parser.parse(current_config)
-    diff_raw = ConfTreeDiffer.diff(current, target, post_proc_rules=[])
+    diff_raw = CTreeDiffer.diff(current, target, post_proc_rules=[])
     assert diff_raw.config == diff_config_raw
 
-    diff_processed = ConfTreeDiffer.diff(current, target)
+    diff_processed = CTreeDiffer.diff(current, target)
     assert diff_processed.config == diff_config_processed
 
 
@@ -565,10 +565,10 @@ def test_arista_postproc_bgp_1() -> None:
         """
     ).strip()
 
-    parser = ConfTreeParser(Vendor.ARISTA)
+    parser = CTreeParser(Vendor.ARISTA)
     current = parser.parse(current_config)
     target = parser.parse(target_config)
-    diff = ConfTreeDiffer.diff(current, target)
+    diff = CTreeDiffer.diff(current, target)
     assert diff.config == diff_config
     assert diff.patch == diff_patch
 
@@ -633,11 +633,11 @@ def test_arista_postproc_bgp_2() -> None:
         """
     ).strip()
 
-    parser = ConfTreeParser(Vendor.ARISTA)
+    parser = CTreeParser(Vendor.ARISTA)
     current = parser.parse(current_config)
     target = parser.parse(target_config)
-    diff_raw = ConfTreeDiffer.diff(current, target, post_proc_rules=[])
-    diff = ConfTreeDiffer.diff(current, target)
+    diff_raw = CTreeDiffer.diff(current, target, post_proc_rules=[])
+    diff = CTreeDiffer.diff(current, target)
     assert diff_raw.config == diff_config_raw
     assert diff.config == diff_config
 
@@ -666,13 +666,13 @@ def test_arista_postproc_tacacs_key_1() -> None:
         """
     ).strip()
     diff_config_processed = ""
-    parser = ConfTreeParser(Vendor.ARISTA)
+    parser = CTreeParser(Vendor.ARISTA)
     target = parser.parse(target_config)
     current = parser.parse(current_config)
-    diff_raw = ConfTreeDiffer.diff(current, target, post_proc_rules=[])
+    diff_raw = CTreeDiffer.diff(current, target, post_proc_rules=[])
     assert diff_raw.config == diff_config_raw, "diff_config_raw"
 
-    diff_processed = ConfTreeDiffer.diff(current, target)
+    diff_processed = CTreeDiffer.diff(current, target)
     assert diff_processed.config == diff_config_processed, "diff_config_processed"
 
 
@@ -705,13 +705,13 @@ def test_arista_postproc_tacacs_key_2() -> None:
         !
         """
     ).strip()
-    parser = ConfTreeParser(Vendor.ARISTA)
+    parser = CTreeParser(Vendor.ARISTA)
     target = parser.parse(target_config)
     current = parser.parse(current_config)
-    diff_raw = ConfTreeDiffer.diff(current, target, post_proc_rules=[])
+    diff_raw = CTreeDiffer.diff(current, target, post_proc_rules=[])
     assert diff_raw.config == diff_config_raw, "diff_config_raw"
 
-    diff_processed = ConfTreeDiffer.diff(current, target)
+    diff_processed = CTreeDiffer.diff(current, target)
     assert diff_processed.config == diff_config_processed, "diff_config_processed"
 
 
@@ -755,11 +755,11 @@ def test_arista_postproc_aaa() -> None:
         !
         """
     ).strip()
-    parser = ConfTreeParser(Vendor.ARISTA)
+    parser = CTreeParser(Vendor.ARISTA)
     target = parser.parse(target_config)
     current = parser.parse(current_config)
-    diff_raw = ConfTreeDiffer.diff(current, target, post_proc_rules=[])
+    diff_raw = CTreeDiffer.diff(current, target, post_proc_rules=[])
     assert diff_raw.config == diff_config_raw, "diff_config_raw"
 
-    diff_processed = ConfTreeDiffer.diff(current, target)
+    diff_processed = CTreeDiffer.diff(current, target)
     assert diff_processed.config == diff_config_processed, "diff_config_processed"
