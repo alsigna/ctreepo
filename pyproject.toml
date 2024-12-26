@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "ctreepo"
-version = "0.2.0"
+version = "0.2.1"
 description = "CTreePO - configuration tree patch overview - Parsing, filtering and diff calculation for network device configurations"
 license = "MIT"
 authors = ["Alexander Ignatov <ignatov.alx@gmail.com>"]
@@ -15,7 +15,7 @@ keywords = [
 ]
 
 [tool.poetry.dependencies]
-python = ">=3.10"
+python = ">=3.11"
 pyyaml = "^6.0.2"
 
 
